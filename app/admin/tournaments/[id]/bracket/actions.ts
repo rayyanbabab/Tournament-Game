@@ -126,9 +126,6 @@ export async function generateBracket(tournamentId: string) {
   return { success: true, rounds: totalRounds }
 }
 
-// setMatchResult is shared (imported by bracket-view client component)
-export { setMatchResult } from '@/app/actions/bracket'
-
 // Reset bracket
 export async function resetBracket(tournamentId: string) {
   const supabase = await createClient()
