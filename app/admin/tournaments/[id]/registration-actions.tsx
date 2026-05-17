@@ -32,7 +32,29 @@ export function RegistrationActions({ registrationId }: RegistrationActionsProps
         return
       }
 
-      toast.success(action === 'approve' ? 'Pendaftaran disetujui' : 'Pendaftaran ditolak')
+      // Fetch registration details to send notification
+      const { data: reg } = await supabase
+        .from('tournament_registrations')
+        .select('registered_by, tournament_id, teams(name), tournaments(name)')
+        .eq('id', registrationId)
+        .single()
+
+      if (reg) {
+        const teamName = (reg.teams as any)?.name ?? 'Tim Anda'
+        const tournamentName = (reg.tournaments as any)?.name ?? 'turnamen ini'
+
+        await supabase.from('notifications').insert({
+          user_id: reg.registered_by,
+          type: action === 'approve' ? 'registration_approved' : 'registration_rejected',
+          title: action === 'approve' ? '🎉 Pendaftaran Disetujui!' : 'Pendaftaran Ditolak',
+          message: action === 'approve'
+            ? `Tim "${teamName}" telah disetujui untuk mengikuti ${tournamentName}. Selamat dan persiapkan diri Anda!`
+            : `Maaf, tim "${teamName}" tidak dapat mengikuti ${tournamentName}. Hubungi panitia untuk informasi lebih lanjut.`,
+          data: { registration_id: registrationId, tournament_id: reg.tournament_id },
+        })
+      }
+
+      toast.success(action === 'approve' ? 'Pendaftaran disetujui & notifikasi dikirim' : 'Pendaftaran ditolak & notifikasi dikirim')
       router.refresh()
     } catch {
       toast.error('Terjadi kesalahan')

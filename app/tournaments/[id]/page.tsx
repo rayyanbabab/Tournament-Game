@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import {
   Trophy, Users, Calendar, Clock, Gamepad2, ArrowLeft,
   FileText, Banknote, MapPin, Phone, CheckCircle, AlertCircle,
-  Lock, ChevronRight, Shuffle,
+  Lock, ChevronRight, Shuffle, CalendarDays, Swords, Star, MessageCircle,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
@@ -55,6 +55,13 @@ export default async function TournamentDetailPage({
     .select('*, teams(id, name, logo_url)')
     .eq('tournament_id', tournamentId)
     .eq('status', 'approved')
+
+  const { data: matches } = await supabase
+    .from('matches')
+    .select('*, team1:team1_id(id, name), team2:team2_id(id, name), winner:winner_id(id, name)')
+    .eq('tournament_id', tournamentId)
+    .order('round', { ascending: true })
+    .order('match_number', { ascending: true })
 
   const statusConfig: Record<string, { label: string; color: string; dot: string; bg: string }> = {
     upcoming:             { label: 'Pendaftaran Dibuka',   color: 'text-blue-600',    dot: 'bg-blue-500',    bg: 'bg-blue-500/10 border-blue-500/20' },
@@ -185,6 +192,92 @@ export default async function TournamentDetailPage({
                 </div>
               )}
 
+              {/* Match Schedule & Results */}
+              {matches && matches.length > 0 && (() => {
+                const rounds = Array.from(new Set(matches.map((m: any) => m.round))).sort((a: any, b: any) => a - b) as number[]
+                const totalRounds = rounds.length
+                const roundLabel = (r: number) =>
+                  r === totalRounds ? 'Grand Final' : r === totalRounds - 1 && totalRounds > 1 ? 'Semifinal' : `Babak ${r}`
+                return (
+                  <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+                    <div className="flex items-center gap-2 px-6 py-4 border-b border-border/40">
+                      <CalendarDays className="h-4 w-4 text-blue-500" />
+                      <h2 className="text-sm font-semibold text-foreground">Jadwal & Hasil Pertandingan</h2>
+                    </div>
+                    <div className="p-5 space-y-6">
+                      {rounds.map((round: number) => {
+                        const roundMatches = matches.filter((m: any) => m.round === round)
+                        return (
+                          <div key={round}>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{roundLabel(round)}</p>
+                            <div className="space-y-2">
+                              {roundMatches.map((match: any) => {
+                                const isBye = match.status === 'bye'
+                                const isCompleted = match.status === 'completed'
+                                const team1Name = match.team1?.name ?? 'TBD'
+                                const team2Name = match.team2?.name ?? 'TBD'
+                                return (
+                                  <div key={match.id} className="rounded-xl border border-border/40 bg-muted/20 px-4 py-3">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        {isBye ? (
+                                          <span className="text-sm text-muted-foreground">{team1Name} <span className="text-xs bg-violet-500/10 text-violet-600 px-1.5 py-0.5 rounded border border-violet-500/20">BYE</span></span>
+                                        ) : (
+                                          <div className="flex items-center gap-2">
+                                            <span className={`text-sm font-bold ${match.winner_id === match.team1_id ? 'text-emerald-600' : 'text-foreground'}`}>{team1Name}</span>
+                                            {isCompleted ? (
+                                              <span className="text-sm font-extrabold text-foreground">{match.score_team1} – {match.score_team2}</span>
+                                            ) : (
+                                              <Swords className="h-3.5 w-3.5 text-muted-foreground" />
+                                            )}
+                                            <span className={`text-sm font-bold ${match.winner_id === match.team2_id ? 'text-emerald-600' : 'text-foreground'}`}>{team2Name}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        {match.scheduled_at && (
+                                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                            <Clock className="h-3 w-3" />
+                                            {format(new Date(match.scheduled_at), 'dd MMM, HH:mm', { locale: id })}
+                                          </span>
+                                        )}
+                                        {match.venue && (
+                                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                                            <MapPin className="h-3 w-3" />
+                                            {match.venue}
+                                          </span>
+                                        )}
+                                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                                          isCompleted ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                          : isBye ? 'bg-violet-500/10 text-violet-600 border-violet-500/20'
+                                          : match.scheduled_at ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                                          : 'bg-muted text-muted-foreground border-border'
+                                        }`}>
+                                          {isCompleted ? 'Selesai' : isBye ? 'BYE' : match.scheduled_at ? 'Dijadwalkan' : 'Menunggu'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    {isCompleted && match.winner && (
+                                      <div className="flex items-center gap-1.5 mt-1.5">
+                                        <Star className="h-3 w-3 text-amber-500" />
+                                        <span className="text-[11px] text-amber-600 font-semibold">Pemenang: {match.winner.name}</span>
+                                      </div>
+                                    )}
+                                    {match.notes && (
+                                      <p className="text-[11px] text-muted-foreground mt-1">{match.notes}</p>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* Registered Teams */}
               <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
@@ -207,7 +300,7 @@ export default async function TournamentDetailPage({
                 {approvedRegistrations && approvedRegistrations.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-5">
                     {approvedRegistrations.map((reg: any) => (
-                      <div key={reg.id} className="flex items-center gap-3 rounded-xl border border-border/40 bg-muted/20 px-4 py-3 hover:border-border/60 transition-colors">
+                      <Link key={reg.id} href={`/teams/${reg.teams?.id}`} className="flex items-center gap-3 rounded-xl border border-border/40 bg-muted/20 px-4 py-3 hover:border-primary/30 hover:bg-primary/5 transition-colors group">
                         <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
                           {reg.teams?.logo_url ? (
                             <img src={reg.teams.logo_url} alt={reg.teams.name} className="h-full w-full object-cover" />
@@ -215,8 +308,8 @@ export default async function TournamentDetailPage({
                             <span className="text-sm font-extrabold text-primary">{reg.teams?.name?.[0]?.toUpperCase()}</span>
                           )}
                         </div>
-                        <p className="text-sm font-medium text-foreground truncate">{reg.teams?.name}</p>
-                      </div>
+                        <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">{reg.teams?.name}</p>
+                      </Link>
                     ))}
                   </div>
                 ) : (
@@ -315,11 +408,17 @@ export default async function TournamentDetailPage({
                 </div>
 
                 {/* Bracket link */}
-                <div className="border-t border-border/40 pt-4">
+                <div className="border-t border-border/40 pt-4 space-y-2">
                   <Button asChild variant="outline" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10">
                     <Link href={`/tournaments/${tournament.id}/bracket`}>
                       <Shuffle className="h-4 w-4" />
                       Lihat Bracket Turnamen
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full gap-2 border-blue-500/30 text-blue-600 hover:bg-blue-500/10">
+                    <Link href={`/tournaments/${tournament.id}/chat`}>
+                      <MessageCircle className="h-4 w-4" />
+                      Lobby Chat Peserta
                     </Link>
                   </Button>
                 </div>

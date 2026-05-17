@@ -23,6 +23,7 @@ import {
   CreditCard,
   Newspaper,
   Shuffle,
+  BarChart2,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -46,6 +47,7 @@ const sections = [
       { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
       { href: '/admin/tournaments', label: 'Turnamen', icon: Trophy },
       { href: '/admin/brackets', label: 'Bracket', icon: Shuffle },
+      { href: '/admin/analytics', label: 'Analytics', icon: BarChart2 },
     ],
   },
   {

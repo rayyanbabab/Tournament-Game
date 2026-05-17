@@ -194,14 +194,16 @@ export default async function HomePage() {
         <section className="relative min-h-[calc(100vh-64px)] flex flex-col items-center justify-center overflow-hidden px-4 pb-16 pt-12">
           {/* Subtle grid background */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.12)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.12)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]" />
-          {/* Glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-primary/4 rounded-full blur-3xl" />
+          {/* Glow orbs */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-3xl pointer-events-none" style={{background:'radial-gradient(ellipse,oklch(0.55 0.26 278/0.18),transparent 70%)',animation:'glow-pulse 6s ease-in-out infinite'}} />
+          <div className="absolute top-20 left-1/4 w-[300px] h-[300px] rounded-full blur-3xl pointer-events-none opacity-40" style={{background:'radial-gradient(ellipse,#a855f7,transparent 70%)',animation:'glow-pulse 8s ease-in-out infinite 2s'}} />
+          <div className="absolute top-32 right-1/4 w-[250px] h-[250px] rounded-full blur-3xl pointer-events-none opacity-30" style={{background:'radial-gradient(ellipse,#ec4899,transparent 70%)',animation:'glow-pulse 7s ease-in-out infinite 1s'}} />
 
           <div className="relative z-10 flex flex-col items-center text-center max-w-4xl mx-auto">
             {/* Announcement badge */}
-            <Link href="/tournaments" className="group mb-8 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-4 py-1.5 text-sm font-medium text-muted-foreground shadow-sm hover:border-border hover:text-foreground transition-all">
-              <Star className="h-3.5 w-3.5 text-primary fill-primary" />
-              <span>{gs('hero_badge', 'Platform Turnamen Gaming Terbaik')}</span>
+            <Link href="/tournaments" className="group mb-8 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary shadow-lg shadow-primary/10 hover:bg-primary/10 hover:shadow-primary/20 transition-all">
+              <Star className="h-3.5 w-3.5 fill-primary" />
+              <span className="text-muted-foreground">{gs('hero_badge', 'Platform Turnamen Gaming Terbaik')}</span>
               <span className="flex items-center gap-0.5 text-primary font-semibold">
                 Daftar Sekarang
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -209,10 +211,10 @@ export default async function HomePage() {
             </Link>
 
             {/* Headline */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground leading-[1.1] mb-6">
-              {gs('hero_title', 'Arena Turnamen')}{' '}
-              <span className="text-muted-foreground">{gs('hero_title2', 'Gaming')}</span>{' '}
-              Online Terbaik
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6">
+              <span className="text-foreground">{gs('hero_title', 'Arena Turnamen')}</span>{' '}
+              <span className="gradient-text">{gs('hero_title2', 'Gaming')}</span>{' '}
+              <span className="text-foreground">Online Terbaik</span>
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-2xl mb-10 leading-relaxed">
@@ -435,9 +437,9 @@ export default async function HomePage() {
           <div className="container mx-auto px-4 lg:px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-0 md:divide-x divide-border/60">
               {[
-                { value: `${totalTournaments || 0}+`, label: 'Turnamen Diselenggarakan', icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-                { value: `${totalTeams || 0}+`, label: 'Tim Aktif Berkompetisi', icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-                { value: `${totalUsers || 0}+`, label: 'Gamer Terdaftar', icon: Gamepad2, color: 'text-violet-500', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
+                { value: `${totalTournaments || 0}+`, label: 'Turnamen Diselenggarakan', icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20', grad: 'from-amber-500 to-orange-400' },
+                { value: `${totalTeams || 0}+`, label: 'Tim Aktif Berkompetisi', icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20', grad: 'from-blue-500 to-cyan-400' },
+                { value: `${totalUsers || 0}+`, label: 'Gamer Terdaftar', icon: Gamepad2, color: 'text-violet-500', bg: 'bg-violet-500/10', border: 'border-violet-500/20', grad: 'from-violet-500 to-pink-500' },
               ].map((stat) => {
                 const Icon = stat.icon
                 return (
@@ -445,7 +447,7 @@ export default async function HomePage() {
                     <div className={`h-12 w-12 rounded-2xl ${stat.bg} border ${stat.border} flex items-center justify-center mb-4`}>
                       <Icon className={`h-6 w-6 ${stat.color}`} />
                     </div>
-                    <p className="text-5xl font-extrabold text-foreground tracking-tight tabular-nums">{stat.value}</p>
+                    <p className={`text-5xl font-extrabold tracking-tight tabular-nums bg-gradient-to-br ${stat.grad} bg-clip-text text-transparent`}>{stat.value}</p>
                     <p className="text-sm text-muted-foreground mt-2">{stat.label}</p>
                   </div>
                 )
@@ -505,15 +507,20 @@ export default async function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature, i) => {
+              {([
+                { icon: Zap,     title: 'Pendaftaran Instan',    desc: 'Buat tim, undang anggota, dan daftar turnamen hanya dalam beberapa menit.',       grad: 'from-cyan-500/15 to-blue-500/5',    border: 'border-cyan-500/20',   icolor: 'text-cyan-500',   ibg: 'bg-cyan-500/10'   },
+                { icon: Shield,  title: 'Terverifikasi Admin',   desc: 'Setiap pendaftaran diverifikasi oleh admin kami untuk menjamin kompetisi adil.',   grad: 'from-violet-500/15 to-purple-500/5', border: 'border-violet-500/20', icolor: 'text-violet-400', ibg: 'bg-violet-500/10' },
+                { icon: Trophy,  title: 'Hadiah Menarik',        desc: 'Ikuti turnamen dengan total prize pool yang menggiurkan. Buktikan skill Anda!',    grad: 'from-amber-500/15 to-orange-500/5',  border: 'border-amber-500/20',  icolor: 'text-amber-500',  ibg: 'bg-amber-500/10'  },
+                { icon: Globe,   title: 'Berbagai Game',         desc: 'Tersedia turnamen untuk berbagai genre game populer: MOBA, FPS, Battle Royale.',  grad: 'from-emerald-500/15 to-teal-500/5',  border: 'border-emerald-500/20',icolor: 'text-emerald-400',ibg: 'bg-emerald-500/10'},
+                { icon: Users,   title: 'Manajemen Tim',         desc: 'Kelola tim dengan mudah. Tambah anggota, atur roster, pantau status real-time.',  grad: 'from-blue-500/15 to-indigo-500/5',   border: 'border-blue-500/20',   icolor: 'text-blue-400',   ibg: 'bg-blue-500/10'   },
+                { icon: Clock,   title: 'Update Real-time',      desc: 'Dapatkan informasi terbaru jadwal, hasil, dan pengumuman turnamen secara langsung.', grad: 'from-pink-500/15 to-rose-500/5',  border: 'border-pink-500/20',   icolor: 'text-pink-400',   ibg: 'bg-pink-500/10'   },
+              ] as const).map((feature, i) => {
                 const Icon = feature.icon
                 return (
-                  <div
-                    key={i}
-                    className="group relative rounded-2xl border border-border/60 bg-card p-6 hover:border-border hover:shadow-lg transition-all duration-300 cursor-default"
-                  >
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary transition-colors duration-300">
-                      <Icon className="h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors duration-300" />
+                  <div key={i} className={`group relative rounded-2xl border ${feature.border} bg-gradient-to-br ${feature.grad} p-6 hover:shadow-xl transition-all duration-300 cursor-default overflow-hidden`}>
+                    <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-10 blur-xl group-hover:opacity-20 transition-opacity" style={{background:'currentColor'}} />
+                    <div className={`h-10 w-10 rounded-xl ${feature.ibg} border ${feature.border} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className={`h-5 w-5 ${feature.icolor}`} />
                     </div>
                     <h3 className="text-base font-bold text-foreground mb-2">{feature.title}</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
@@ -972,26 +979,30 @@ export default async function HomePage() {
 
         {/* ─── CTA SECTION ─── */}
         <section className="py-32 border-t border-border/60 relative overflow-hidden">
+          <div className="absolute inset-0" style={{background:'radial-gradient(ellipse 80% 60% at 50% 50%, oklch(0.55 0.26 278/0.12), transparent)'}} />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.3)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.3)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,black,transparent)]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-primary/8 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[2px] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
           <div className="container mx-auto px-4 lg:px-6 relative text-center">
-            <Badge variant="outline" className="mb-6 text-xs font-medium">Gratis Selamanya</Badge>
-            <h2 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight mb-6 max-w-2xl mx-auto">
-              Siap Membuktikan Skill Anda?
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-semibold text-primary mb-6">
+              <Trophy className="h-3.5 w-3.5" /> Gratis Selamanya
+            </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6 max-w-2xl mx-auto">
+              Siap Membuktikan{' '}
+              <span className="gradient-text">Skill Anda?</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10">
               Bergabunglah sekarang, buat tim, dan daftarkan diri ke turnamen pertama Anda. Tanpa biaya pendaftaran.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
-              <Button asChild size="lg" className="h-12 px-10 text-base shadow-lg shadow-primary/20 gap-2 group">
+              <Button asChild size="lg" className="h-12 px-10 text-base gap-2 group bg-gradient-to-r from-violet-600 to-purple-500 text-white border-0 shadow-lg shadow-violet-500/30 hover:opacity-90 transition-opacity">
                 <Link href="/auth/signup">
                   Daftar Sekarang — Gratis
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base gap-2">
+              <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base gap-2 border-primary/30 hover:bg-primary/5">
                 <Link href="/tournaments">Jelajahi Turnamen</Link>
               </Button>
             </div>

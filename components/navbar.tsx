@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { NotificationBell } from '@/components/notification-bell'
 import { cn } from '@/lib/utils'
 import {
   Gamepad2,
@@ -126,6 +127,8 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               {/* Theme toggle */}
               <ThemeToggle size="sm" />
+              {/* Notification Bell (only for logged-in users) */}
+              {profile && <NotificationBell />}
 
               {loading ? (
                 <div className="h-8 w-24 rounded-lg bg-muted animate-pulse" />

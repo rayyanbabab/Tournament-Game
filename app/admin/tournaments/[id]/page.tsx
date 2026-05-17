@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import {
   Trophy, ArrowLeft, Calendar, Users, Clock, FileText,
-  Gamepad2, Edit, MapPin, Banknote, Phone, Star, ChevronRight,
+  Gamepad2, Edit, MapPin, Banknote, Phone, Star, ChevronRight, CalendarDays,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
@@ -13,6 +13,8 @@ import { RegistrationActions } from './registration-actions'
 import { getTournamentStatus } from '@/lib/utils'
 import { DeleteTournamentButton } from './delete-tournament-button'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { ExportCSVButton } from './export-csv-button'
+import { AnnouncementForm } from './announcement-form'
 
 export default async function AdminTournamentDetailPage({
   params,
@@ -81,11 +83,17 @@ export default async function AdminTournamentDetailPage({
                 <Edit className="h-3.5 w-3.5" />Edit
               </Link>
             </Button>
+            <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-blue-500/30 text-blue-600 hover:bg-blue-500/10">
+              <Link href={`/admin/tournaments/${tournament.id}/schedule`}>
+                <CalendarDays className="h-3.5 w-3.5" />Jadwal
+              </Link>
+            </Button>
             <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/10">
               <Link href={`/admin/tournaments/${tournament.id}/bracket`}>
                 <Trophy className="h-3.5 w-3.5" />Bracket
               </Link>
             </Button>
+            <ExportCSVButton tournamentId={tournament.id} tournamentName={tournament.name} />
             <DeleteTournamentButton tournamentId={tournament.id} />
           </div>
         </header>
@@ -249,6 +257,9 @@ export default async function AdminTournamentDetailPage({
                   <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">{tournament.rules}</p>
                 </div>
               )}
+
+              {/* Announcement Form */}
+              <AnnouncementForm tournamentId={tournament.id} approvedCount={approvedCount} />
             </div>
           </div>
         </main>
