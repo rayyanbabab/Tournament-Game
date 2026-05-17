@@ -22,6 +22,7 @@ import {
   LayoutTemplate,
   CreditCard,
   Newspaper,
+  Shuffle,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -44,6 +45,7 @@ const sections = [
     items: [
       { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
       { href: '/admin/tournaments', label: 'Turnamen', icon: Trophy },
+      { href: '/admin/brackets', label: 'Bracket', icon: Shuffle },
     ],
   },
   {
@@ -53,6 +55,7 @@ const sections = [
       { href: '/admin/payments', label: 'Pembayaran', icon: Banknote },
       { href: '/admin/payment-settings', label: 'Metode Bayar', icon: CreditCard },
       { href: '/admin/teams', label: 'Tim', icon: Users },
+      { href: '/admin/testimonials', label: 'Ulasan', icon: Star },
     ],
   },
   {

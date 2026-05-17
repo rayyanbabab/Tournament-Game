@@ -9,7 +9,7 @@ interface Tournament {
   name: string
   game: string
   start_date: string
-  cover_image_url?: string | null
+  image_url?: string | null
 }
 
 interface Props {
@@ -72,8 +72,8 @@ export function FeaturedTournamentPicker({ tournaments, currentFeaturedId }: Pro
           >
             {/* Thumbnail */}
             <div className="w-12 h-10 rounded-lg overflow-hidden bg-muted shrink-0 border border-border/40">
-              {t.cover_image_url ? (
-                <img src={t.cover_image_url} alt={t.name} className="w-full h-full object-cover" />
+              {t.image_url ? (
+                <img src={t.image_url} alt={t.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Flame className="h-4 w-4 text-muted-foreground/30" />

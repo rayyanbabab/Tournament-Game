@@ -40,6 +40,7 @@ const sections = [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
       { href: '/dashboard/teams', label: 'Tim Saya', icon: Users },
       { href: '/tournaments', label: 'Turnamen', icon: Trophy },
+      { href: '/dashboard/testimonial', label: 'Ulasan Saya', icon: Star },
     ],
   },
   {

@@ -28,7 +28,7 @@ export function FeaturedBanner({ tournament }: Props) {
   const deadline = tournament.registration_deadline || tournament.start_date
 
   return (
-    <section className="relative w-full overflow-hidden min-h-[520px] md:min-h-[580px] flex items-center">
+    <section className="relative w-full overflow-hidden min-h-[400px] md:min-h-[440px] flex items-center">
       {/* Background */}
       {bgImage ? (
         <>
@@ -138,8 +138,6 @@ export function FeaturedBanner({ tournament }: Props) {
         </div>
       </div>
 
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent" />
     </section>
   )
 }

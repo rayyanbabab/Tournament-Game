@@ -11,11 +11,13 @@ import {
   FileImage,
   Users,
   Trophy,
+  ClipboardList,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { RegistrationActions } from '../tournaments/[id]/registration-actions'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default async function AdminPaymentsPage() {
   const supabase = await createClient()
@@ -118,27 +120,37 @@ export default async function AdminPaymentsPage() {
       <AdminSidebar />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="hidden md:flex sticky top-0 z-30 h-12 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
-          <span className="text-sm font-medium">Kelola Pembayaran</span>
+        <header className="hidden md:flex sticky top-0 z-30 h-14 items-center justify-between border-b border-border/60 bg-background/95 backdrop-blur-sm px-6 shrink-0">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Admin</span>
+            <span className="text-muted-foreground/40">/</span>
+            <span className="text-foreground font-medium">Kelola Pembayaran</span>
+          </div>
+          <ThemeToggle size="sm" />
         </header>
 
         <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto pt-16 md:pt-6">
           {/* Header */}
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Kelola Pembayaran</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Verifikasi bukti pembayaran dan setujui pendaftaran tim</p>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+              <Banknote className="h-5 w-5 text-emerald-500" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Kelola Pembayaran</h1>
+              <p className="text-sm text-muted-foreground">Verifikasi bukti pembayaran dan setujui pendaftaran tim</p>
+            </div>
           </div>
 
           {/* Summary stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: 'Total Pendaftaran', value: registrations?.length || 0, color: 'text-foreground' },
-              { label: 'Ada Bukti Bayar', value: withPayment.length, color: 'text-primary' },
-              { label: 'Perlu Diverifikasi', value: pendingWithPayment.length, color: 'text-amber-500' },
-              { label: 'Tanpa Bukti', value: withoutPayment.length, color: 'text-muted-foreground' },
+              { label: 'Total Pendaftaran', value: registrations?.length || 0, accent: 'border-l-foreground/30',   valColor: 'text-foreground' },
+              { label: 'Ada Bukti Bayar',   value: withPayment.length,          accent: 'border-l-primary',         valColor: 'text-primary' },
+              { label: 'Perlu Diverifikasi', value: pendingWithPayment.length,   accent: 'border-l-amber-500',       valColor: 'text-amber-500' },
+              { label: 'Tanpa Bukti',        value: withoutPayment.length,       accent: 'border-l-muted-foreground', valColor: 'text-muted-foreground' },
             ].map((s, i) => (
-              <div key={i} className="rounded-xl border border-border/60 bg-card p-4">
-                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              <div key={i} className={`rounded-xl border border-border/60 border-l-2 ${s.accent} bg-card p-4`}>
+                <p className={`text-3xl font-extrabold tabular-nums ${s.valColor}`}>{s.value}</p>
                 <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
               </div>
             ))}

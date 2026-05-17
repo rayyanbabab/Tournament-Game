@@ -26,9 +26,9 @@ export default async function AdminContentPage() {
   const featuredId = initialContent['featured_tournament_id'] || null
 
   // Load all tournaments for picker
-  const { data: tournaments } = await supabase
+  const { data: tournaments, error: tourErr } = await supabase
     .from('tournaments')
-    .select('id, name, game, start_date, cover_image_url')
+    .select('id, name, game, start_date, image_url')
     .order('start_date', { ascending: false })
 
   return (

@@ -2,14 +2,16 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Users, Crown, User, Trophy, Calendar, Mail, Phone, Info } from 'lucide-react'
+import {
+  ArrowLeft, Users, Crown, User, Trophy, Calendar,
+  Mail, Phone, Info, ChevronRight, Shield, Plus,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { AddMemberDialog } from './add-member-dialog'
 import { RemoveMemberButton } from './remove-member-button'
 import { UserSidebar } from '@/components/user/sidebar'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default async function TeamDetailPage({
   params,
@@ -50,187 +52,219 @@ export default async function TeamDetailPage({
     .eq('team_id', teamId)
     .order('registered_at', { ascending: false })
 
-  const statusConfig: Record<string, { label: string; color: string }> = {
-    pending: { label: 'Menunggu', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-    approved: { label: 'Disetujui', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-    rejected: { label: 'Ditolak', color: 'bg-red-500/10 text-red-600 border-red-500/20' },
-    withdrawn: { label: 'Dibatalkan', color: 'bg-muted text-muted-foreground border-border' },
+  const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
+    pending:   { label: 'Menunggu',   bg: 'bg-amber-500/10',   text: 'text-amber-600',   border: 'border-amber-500/20' },
+    approved:  { label: 'Disetujui',  bg: 'bg-emerald-500/10', text: 'text-emerald-600', border: 'border-emerald-500/20' },
+    rejected:  { label: 'Ditolak',    bg: 'bg-red-500/10',     text: 'text-red-600',     border: 'border-red-500/20' },
+    withdrawn: { label: 'Dibatalkan', bg: 'bg-muted/40',       text: 'text-muted-foreground', border: 'border-border/40' },
   }
 
   return (
     <div className="flex min-h-screen bg-background">
       <UserSidebar profile={profile} />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
-          <Button asChild variant="ghost" size="sm" className="h-8 gap-2 text-muted-foreground hover:text-foreground -ml-1">
-            <Link href="/dashboard">
-              <ArrowLeft className="h-4 w-4" />
-              Dashboard
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Top Bar */}
+        <header className="hidden md:flex sticky top-0 z-30 h-14 items-center justify-between border-b border-border/60 bg-background/95 backdrop-blur-sm px-6 shrink-0">
+          <div className="flex items-center gap-2 text-sm">
+            <Link href="/dashboard/teams" className="text-muted-foreground hover:text-foreground transition-colors">
+              Tim Saya
             </Link>
-          </Button>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+            <span className="text-foreground font-medium truncate max-w-[200px]">{team.name}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle size="sm" />
+            {isCaptain && <AddMemberDialog teamId={teamId} />}
+          </div>
         </header>
 
-        <main className="flex-1 p-6">
-          {/* Team Header */}
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6 pb-6 border-b border-border/60">
-            <div className="flex items-center gap-5">
-              <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center ring-2 ring-primary/20 shrink-0 overflow-hidden">
-                {team.logo_url ? (
-                  <img src={team.logo_url} alt={team.name} className="h-full w-full object-cover" />
-                ) : (
-                  <span className="text-3xl font-bold text-primary">{team.name[0].toUpperCase()}</span>
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-3xl font-bold tracking-tight text-foreground">{team.name}</h1>
-                  {isCaptain && (
-                    <Badge className="gap-1.5 bg-amber-500/10 text-amber-600 border-amber-500/20" variant="outline">
-                      <Crown className="h-3.5 w-3.5" />
-                      Kapten
-                    </Badge>
+        <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto pt-16 md:pt-6">
+
+          {/* Back link */}
+          <Link href="/dashboard/teams"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Kembali ke Tim Saya
+          </Link>
+
+          {/* Team Header Card */}
+          <div className="rounded-2xl border border-border/60 bg-card p-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+              <div className="flex items-center gap-5">
+                <div className="h-20 w-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
+                  {team.logo_url ? (
+                    <img src={team.logo_url} alt={team.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-3xl font-extrabold text-primary">{team.name[0].toUpperCase()}</span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-2">
-                  <Calendar className="h-3.5 w-3.5" />
-                  Dibuat {format(new Date(team.created_at), 'dd MMM yyyy', { locale: id })}
-                  <span className="text-border/60">•</span>
-                  <Users className="h-3.5 w-3.5" />
-                  {members?.length || 0} anggota
-                </p>
-                
-                {(team.contact_email || team.whatsapp_number) && (
-                  <div className="flex items-center gap-4 mt-3">
-                    {team.contact_email && (
-                      <a href={`mailto:${team.contact_email}`} className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 px-2.5 py-1.5 rounded-md">
-                        <Mail className="h-3.5 w-3.5" />
-                        {team.contact_email}
-                      </a>
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h1 className="text-2xl font-extrabold tracking-tight text-foreground">{team.name}</h1>
+                    {isCaptain && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                        <Crown className="h-3 w-3" />Kapten
+                      </span>
                     )}
-                    {team.whatsapp_number && (
-                      <a href={`https://wa.me/${team.whatsapp_number.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-500 hover:bg-emerald-500/10 transition-colors bg-emerald-500/5 border border-emerald-500/20 px-2.5 py-1.5 rounded-md">
-                        <Phone className="h-3.5 w-3.5" />
-                        {team.whatsapp_number}
-                      </a>
+                    {!isCaptain && isMember && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                        <Shield className="h-3 w-3" />Anggota
+                      </span>
                     )}
                   </div>
-                )}
+                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      Dibuat {format(new Date(team.created_at), 'dd MMM yyyy', { locale: id })}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" />
+                      {members?.length || 0} anggota
+                    </span>
+                  </div>
+
+                  {/* Contact info */}
+                  {(team.contact_email || team.whatsapp_number) && (
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
+                      {team.contact_email && (
+                        <a href={`mailto:${team.contact_email}`}
+                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border/60 bg-muted/30 hover:bg-muted/60 px-2.5 py-1.5 rounded-lg transition-all">
+                          <Mail className="h-3.5 w-3.5" />{team.contact_email}
+                        </a>
+                      )}
+                      {team.whatsapp_number && (
+                        <a href={`https://wa.me/${team.whatsapp_number.replace(/[^0-9]/g, '')}`}
+                          target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 px-2.5 py-1.5 rounded-lg transition-all">
+                          <Phone className="h-3.5 w-3.5" />{team.whatsapp_number}
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* About */}
+            {team.description && (
+              <div className="mt-5 pt-5 border-t border-border/40">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tentang Tim</p>
+                </div>
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{team.description}</p>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              {team.description && (
-                <Card className="border-border/60 bg-primary/5">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                      <Info className="h-4 w-4 text-primary" />
-                      Tentang Tim
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                      {team.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-              <Card className="border-border/60">
-                <CardHeader className="flex flex-row items-center justify-between pb-4">
+            {/* Members Card */}
+            <div className="lg:col-span-2">
+              <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
                   <div>
-                    <CardTitle className="text-base font-semibold">Anggota Tim</CardTitle>
-                    <CardDescription className="text-xs mt-0.5">{members?.length || 0} anggota terdaftar</CardDescription>
+                    <h2 className="text-sm font-semibold text-foreground">Anggota Tim</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">{members?.length || 0} anggota terdaftar</p>
                   </div>
-                  {isCaptain && <AddMemberDialog teamId={teamId} />}
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="divide-y divide-border/60">
-                    {members?.map((member: any) => (
-                      <div
-                        key={member.id}
-                        className="flex items-center justify-between px-5 py-4 hover:bg-muted/20 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
-                            member.role === 'captain' ? 'bg-amber-500/10' : 'bg-muted'
-                          }`}>
-                            {member.role === 'captain' ? (
-                              <Crown className="h-4.5 w-4.5 text-amber-500" style={{ width: '1.125rem', height: '1.125rem' }} />
-                            ) : (
-                              <User className="h-4.5 w-4.5 text-muted-foreground" style={{ width: '1.125rem', height: '1.125rem' }} />
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {member.in_game_name || member.profiles?.full_name || member.profiles?.email}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {member.in_game_id ? `Game ID: ${member.in_game_id}` : member.profiles?.email}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className={member.role === 'captain'
-                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/20 text-[11px]'
-                              : 'text-[11px]'
-                            }
-                          >
-                            {member.role === 'captain' ? 'Kapten' : 'Anggota'}
-                          </Badge>
-                          {isCaptain && member.role !== 'captain' && (
-                            <RemoveMemberButton memberId={member.id} memberName={member.profiles?.full_name} />
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sidebar - Tournament Registrations */}
-            <div>
-              <Card className="border-border/60">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-base font-semibold">Turnamen Diikuti</CardTitle>
-                  <CardDescription className="text-xs mt-0.5">Pendaftaran turnamen tim ini</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {registrations && registrations.length > 0 ? (
-                    <div className="divide-y divide-border/60">
-                      {registrations.map((reg: any) => {
-                        const config = statusConfig[reg.status]
-                        return (
-                          <div key={reg.id} className="px-5 py-4 hover:bg-muted/20 transition-colors">
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{reg.tournaments?.game}</Badge>
-                              <Badge variant="outline" className={`text-[10px] h-4 px-1.5 ${config.color}`}>{config.label}</Badge>
-                            </div>
-                            <p className="text-sm font-medium text-foreground line-clamp-1">{reg.tournaments?.name}</p>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                              <Calendar className="h-3 w-3" />
-                              {format(new Date(reg.tournaments?.start_date), 'dd MMM yyyy', { locale: id })}
-                            </p>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 text-center px-4">
-                      <Trophy className="h-8 w-8 text-muted-foreground/30 mb-3" />
-                      <p className="text-xs text-muted-foreground mb-3">Belum ada pendaftaran turnamen</p>
-                      <Button asChild size="sm" className="h-7 text-xs">
-                        <Link href="/tournaments">Cari Turnamen</Link>
-                      </Button>
+                  {isCaptain && (
+                    <div className="md:hidden">
+                      <AddMemberDialog teamId={teamId} />
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+                <div className="divide-y divide-border/40">
+                  {members?.map((member: any) => (
+                    <div key={member.id}
+                      className="flex items-center justify-between px-6 py-4 hover:bg-muted/20 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          member.role === 'captain'
+                            ? 'bg-amber-500/10 border border-amber-500/20'
+                            : 'bg-muted/60 border border-border/40'
+                        }`}>
+                          {member.role === 'captain' ? (
+                            <Crown className="h-4 w-4 text-amber-500" />
+                          ) : (
+                            <User className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {member.in_game_name || member.profiles?.full_name || member.profiles?.email}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {member.in_game_id ? `Game ID: ${member.in_game_id}` : member.profiles?.email}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                          member.role === 'captain'
+                            ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                            : 'bg-muted/40 text-muted-foreground border-border/40'
+                        }`}>
+                          {member.role === 'captain' ? 'Kapten' : 'Anggota'}
+                        </span>
+                        {isCaptain && member.role !== 'captain' && (
+                          <RemoveMemberButton memberId={member.id} memberName={member.profiles?.full_name} />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Tournament Registrations Sidebar */}
+            <div>
+              <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
+                <div className="flex items-center gap-2 px-5 py-4 border-b border-border/40">
+                  <Trophy className="h-4 w-4 text-amber-500" />
+                  <div>
+                    <h2 className="text-sm font-semibold text-foreground">Turnamen Diikuti</h2>
+                    <p className="text-xs text-muted-foreground">{registrations?.length || 0} pendaftaran</p>
+                  </div>
+                </div>
+
+                {registrations && registrations.length > 0 ? (
+                  <div className="divide-y divide-border/40">
+                    {registrations.map((reg: any) => {
+                      const cfg = statusConfig[reg.status] ?? statusConfig.pending
+                      return (
+                        <div key={reg.id} className="px-5 py-4 hover:bg-muted/20 transition-colors">
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                              {reg.tournaments?.game}
+                            </span>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+                              {cfg.label}
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium text-foreground line-clamp-1">{reg.tournaments?.name}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(reg.tournaments?.start_date), 'dd MMM yyyy', { locale: id })}
+                          </p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-10 text-center px-4 gap-3">
+                    <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                      <Trophy className="h-6 w-6 text-amber-500/30" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Belum ada turnamen</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Daftarkan tim ke turnamen sekarang</p>
+                    </div>
+                    <Button asChild size="sm" className="gap-1.5">
+                      <Link href="/tournaments"><Plus className="h-3.5 w-3.5" />Cari Turnamen</Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </main>
