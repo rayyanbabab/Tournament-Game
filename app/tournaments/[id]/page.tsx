@@ -32,23 +32,16 @@ export default async function TournamentDetailPage({
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  let userTeams: { id: string; name: string }[] = []
   let existingRegistration: any = null
 
   if (user) {
-    const { data: teams } = await supabase
-      .from('teams').select('id, name').eq('captain_id', user.id)
-    userTeams = teams || []
-
-    if (userTeams.length > 0) {
-      const { data: registration } = await supabase
-        .from('tournament_registrations')
-        .select('*, teams(name)')
-        .eq('tournament_id', tournamentId)
-        .in('team_id', userTeams.map(t => t.id))
-        .single()
-      existingRegistration = registration
-    }
+    const { data: registration } = await supabase
+      .from('tournament_registrations')
+      .select('*, teams(name)')
+      .eq('tournament_id', tournamentId)
+      .eq('registered_by', user.id)
+      .maybeSingle()
+    existingRegistration = registration
   }
 
   const { count: registrationCount } = await supabase
@@ -284,13 +277,6 @@ export default async function TournamentDetailPage({
                         <Link href="/auth/login">Login untuk Mendaftar</Link>
                       </Button>
                     </div>
-                  ) : userTeams.length === 0 ? (
-                    <div className="space-y-3">
-                      <p className="text-sm text-muted-foreground text-center">Anda belum punya tim. Buat tim terlebih dahulu.</p>
-                      <Button asChild className="w-full">
-                        <Link href="/dashboard/teams/create">Buat Tim</Link>
-                      </Button>
-                    </div>
                   ) : !isRegistrationOpen ? (
                     <div className="rounded-xl border border-border/60 bg-muted/30 p-4 flex flex-col items-center gap-2">
                       <Lock className="h-5 w-5 text-muted-foreground" />
@@ -304,7 +290,6 @@ export default async function TournamentDetailPage({
                   ) : (
                     <RegisterTournamentButton
                       tournamentId={tournament.id}
-                      teams={userTeams}
                       teamSize={tournament.team_size}
                       registrationFee={tournament.registration_fee}
                     />
