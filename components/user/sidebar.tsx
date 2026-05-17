@@ -189,7 +189,7 @@ export function UserSidebar({ profile }: UserSidebarProps) {
       {/* ── DESKTOP SIDEBAR ── */}
       <aside
         className={cn(
-          'hidden md:flex flex-col border-r border-border/60 bg-sidebar min-h-screen transition-all duration-300 ease-in-out shrink-0',
+          'hidden md:flex flex-col border-r border-border/60 bg-sidebar sticky top-0 h-screen overflow-y-auto transition-all duration-300 ease-in-out shrink-0',
           collapsed ? 'w-[56px]' : 'w-[220px]'
         )}
       >

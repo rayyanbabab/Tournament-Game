@@ -12,8 +12,6 @@ import {
   Gamepad2,
   CheckCircle2,
   AlertCircle,
-  TrendingUp,
-  TrendingDown,
   Search,
   Sun,
   MoreHorizontal,
@@ -37,10 +35,13 @@ export default async function AdminDashboardPage() {
   if (profile?.role !== 'admin') redirect('/dashboard')
 
   const { count: totalTournaments } = await supabase.from('tournaments').select('*', { count: 'exact', head: true })
+  const { count: activeTournaments } = await supabase.from('tournaments').select('*', { count: 'exact', head: true }).in('status', ['upcoming', 'ongoing'])
   const { count: totalTeams } = await supabase.from('teams').select('*', { count: 'exact', head: true })
   const { count: totalUsers } = await supabase.from('profiles').select('*', { count: 'exact', head: true })
   const { count: pendingRegistrations } = await supabase.from('tournament_registrations').select('*', { count: 'exact', head: true }).eq('status', 'pending')
   const { count: approvedRegistrations } = await supabase.from('tournament_registrations').select('*', { count: 'exact', head: true }).eq('status', 'approved')
+  const { count: rejectedRegistrations } = await supabase.from('tournament_registrations').select('*', { count: 'exact', head: true }).eq('status', 'rejected')
+  const { count: totalRegistrations } = await supabase.from('tournament_registrations').select('*', { count: 'exact', head: true })
 
   const { data: recentRegistrations } = await supabase
     .from('tournament_registrations')
@@ -57,7 +58,7 @@ export default async function AdminDashboardPage() {
   const regCounts = {
     pending: pendingRegistrations || 0,
     approved: approvedRegistrations || 0,
-    rejected: (allRegistrations?.filter(r => r.status === 'rejected').length) || 0,
+    rejected: rejectedRegistrations || 0,
   }
   const registrationStatusData = [
     { name: 'Menunggu', value: regCounts.pending },
@@ -68,42 +69,47 @@ export default async function AdminDashboardPage() {
   const { data: recentTournaments } = await supabase
     .from('tournaments').select('*').order('created_at', { ascending: false }).limit(8)
 
+  const approvalRate = (totalRegistrations || 0) > 0
+    ? Math.round(((approvedRegistrations || 0) / (totalRegistrations || 1)) * 100)
+    : 0
+
   const stats = [
     {
       title: 'Total Turnamen',
       value: totalTournaments || 0,
       icon: Trophy,
-      trend: '+12.5%',
-      trendUp: true,
-      desc: 'Meningkat bulan ini',
-      sub: 'Selama 6 bulan terakhir',
+      badge: `${activeTournaments || 0} aktif`,
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+      desc: 'Turnamen yang pernah dibuat',
+      sub: `${activeTournaments || 0} sedang berjalan / dibuka`,
     },
     {
       title: 'Tim Terdaftar',
       value: totalTeams || 0,
       icon: Users,
-      trend: '-8%',
-      trendUp: false,
-      desc: 'Turun 8% periode ini',
-      sub: 'Perlu perhatian lebih',
+      badge: `${totalRegistrations || 0} reg`,
+      badgeColor: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+      desc: 'Tim yang telah dibuat',
+      sub: `Total ${totalRegistrations || 0} pendaftaran turnamen`,
     },
     {
       title: 'Total Pengguna',
       value: totalUsers || 0,
       icon: Gamepad2,
-      trend: '+24.5%',
-      trendUp: true,
-      desc: 'Retensi pengguna kuat',
-      sub: 'Target keterlibatan tercapai',
+      badge: `${pendingRegistrations || 0} pending`,
+      badgeColor: (pendingRegistrations || 0) > 0 ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : 'bg-muted text-muted-foreground border-border',
+      desc: 'Akun terdaftar di platform',
+      sub: `${pendingRegistrations || 0} pendaftaran menunggu review`,
     },
     {
-      title: 'Disetujui',
-      value: approvedRegistrations || 0,
+      title: 'Tingkat Persetujuan',
+      value: approvalRate,
+      valueSuffix: '%',
       icon: CheckCircle2,
-      trend: '+4.5%',
-      trendUp: true,
-      desc: 'Peningkatan stabil',
-      sub: 'Memenuhi target pertumbuhan',
+      badge: `${approvedRegistrations || 0} approved`,
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+      desc: 'Dari total pendaftaran masuk',
+      sub: `${approvedRegistrations || 0} disetujui, ${rejectedRegistrations || 0} ditolak`,
     },
   ]
 
@@ -158,22 +164,26 @@ export default async function AdminDashboardPage() {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
             {stats.map((stat, i) => {
-              const TrendIcon = stat.trendUp ? TrendingUp : TrendingDown
+              const Icon = stat.icon
               return (
                 <div key={i} className="rounded-xl border border-border/60 bg-card p-3 md:p-5 hover:border-border transition-colors">
                   <div className="flex items-center justify-between mb-2 md:mb-3">
                     <p className="text-xs md:text-sm text-muted-foreground truncate">{stat.title}</p>
-                    <div className={`flex items-center gap-1 text-[11px] md:text-xs font-medium ${stat.trendUp ? 'text-emerald-500' : 'text-red-500'} shrink-0 ml-1`}>
-                      <TrendIcon className="h-3 w-3" />
-                      <span className="hidden sm:inline">{stat.trend}</span>
-                    </div>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${(stat as any).badgeColor} shrink-0 ml-1 hidden sm:inline`}>
+                      {(stat as any).badge}
+                    </span>
                   </div>
-                  <div className="text-2xl md:text-3xl font-bold text-foreground tracking-tight tabular-nums mb-2 md:mb-3">
-                    {stat.value.toLocaleString()}
+                  <div className="flex items-end gap-1 mb-2 md:mb-3">
+                    <span className="text-2xl md:text-3xl font-bold text-foreground tracking-tight tabular-nums">
+                      {stat.value.toLocaleString()}
+                    </span>
+                    {(stat as any).valueSuffix && (
+                      <span className="text-lg font-bold text-muted-foreground mb-0.5">{(stat as any).valueSuffix}</span>
+                    )}
                   </div>
                   <div className="pt-2 md:pt-3 border-t border-border/60">
                     <p className="text-[11px] md:text-xs font-medium text-foreground flex items-center gap-1">
-                      <TrendIcon className={`h-3 w-3 ${stat.trendUp ? 'text-emerald-500' : 'text-red-500'} shrink-0`} />
+                      <Icon className="h-3 w-3 text-primary shrink-0" />
                       <span className="truncate">{stat.desc}</span>
                     </p>
                     <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5 truncate hidden sm:block">{stat.sub}</p>

@@ -35,15 +35,9 @@ function generateTimeSeriesData(registrations: { registered_at: string }[], peri
   return days.map((day) => {
     const dayStr = format(day, 'yyyy-MM-dd')
     const count = registrations.filter((r) => r.registered_at.startsWith(dayStr)).length
-    // Simulate visitor traffic: registrations * multiplier + base noise
-    const base = Math.floor(Math.random() * 30 + 10)
-    const visitors = count * 15 + base
-    const returning = Math.floor(visitors * 0.4 + Math.random() * 10)
     return {
       date: day,
       label: period === '7d' ? format(day, 'EEE', { locale: id }) : format(day, 'dd MMM', { locale: id }),
-      visitors,
-      returning,
       registrations: count,
     }
   })
@@ -60,16 +54,16 @@ export function AdminAreaChart({ registrations }: VisitorsChartProps) {
     { key: '7d', label: 'Last 7 days' },
   ]
 
-  const totalVisitors = data.reduce((s, d) => s + d.visitors, 0)
   const totalRegistrations = data.reduce((s, d) => s + d.registrations, 0)
+  const peakDay = data.reduce((max, d) => d.registrations > max.registrations ? d : max, data[0] || { label: '-', registrations: 0 })
 
   return (
     <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
       <div className="flex items-start justify-between px-5 pt-5 pb-4">
         <div>
-          <h2 className="text-base font-semibold text-foreground">Total Visitors</h2>
+          <h2 className="text-base font-semibold text-foreground">Aktivitas Pendaftaran</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Total for the {period === '90d' ? 'last 3 months' : period === '30d' ? 'last 30 days' : 'last 7 days'}
+            Total pendaftaran {period === '90d' ? '3 bulan terakhir' : period === '30d' ? '30 hari terakhir' : '7 hari terakhir'}
           </p>
         </div>
         <div className="flex items-center gap-1 rounded-lg border border-border/60 p-1 bg-muted/30">
@@ -90,23 +84,19 @@ export function AdminAreaChart({ registrations }: VisitorsChartProps) {
         </div>
       </div>
 
-      {/* Tiny stats */}
+      {/* Real stats */}
       <div className="flex items-center gap-6 px-5 pb-4">
         <div>
-          <p className="text-2xl font-bold text-foreground tabular-nums">{totalVisitors.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-foreground tabular-nums">{totalRegistrations}</p>
           <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-            <span className="inline-block h-2 w-2 rounded-full bg-foreground/70"></span>Visitors
+            <span className="inline-block h-2 w-2 rounded-full bg-foreground/70"></span>Total Pendaftaran
           </p>
         </div>
         <div>
-          <p className="text-2xl font-bold text-muted-foreground tabular-nums">{data.reduce((s, d) => s + d.returning, 0).toLocaleString()}</p>
+          <p className="text-2xl font-bold text-muted-foreground tabular-nums">{peakDay.registrations}</p>
           <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-            <span className="inline-block h-2 w-2 rounded-full bg-muted-foreground/40"></span>Returning
+            <span className="inline-block h-2 w-2 rounded-full bg-primary/60"></span>Terbanyak ({peakDay.label})
           </p>
-        </div>
-        <div className="ml-auto">
-          <p className="text-sm font-semibold text-primary tabular-nums">{totalRegistrations}</p>
-          <p className="text-xs text-muted-foreground">Pendaftaran</p>
         </div>
       </div>
 
@@ -115,13 +105,9 @@ export function AdminAreaChart({ registrations }: VisitorsChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 4, right: 16, left: -20, bottom: 0 }}>
             <defs>
-              <linearGradient id="gradVisitors" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.3} />
+              <linearGradient id="gradReg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.35} />
                 <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0.02} />
-              </linearGradient>
-              <linearGradient id="gradReturning" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.25} />
-                <stop offset="100%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} vertical={false} />
@@ -150,19 +136,13 @@ export function AdminAreaChart({ registrations }: VisitorsChartProps) {
             />
             <Area
               type="monotone"
-              dataKey="visitors"
-              name="Visitors"
+              dataKey="registrations"
+              name="Pendaftaran"
               stroke="hsl(var(--foreground))"
               strokeWidth={1.5}
-              fill="url(#gradVisitors)"
-            />
-            <Area
-              type="monotone"
-              dataKey="returning"
-              name="Returning"
-              stroke="hsl(var(--muted-foreground))"
-              strokeWidth={1}
-              fill="url(#gradReturning)"
+              fill="url(#gradReg)"
+              dot={false}
+              activeDot={{ r: 4, fill: 'hsl(var(--foreground))' }}
             />
           </AreaChart>
         </ResponsiveContainer>
