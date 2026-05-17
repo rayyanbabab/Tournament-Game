@@ -19,7 +19,10 @@ export default async function TournamentsPage({
 }) {
   const params = await searchParams
   const supabase = await createClient()
-  
+
+  // Sync status berdasarkan tanggal setiap halaman dimuat
+  try { await supabase.rpc('sync_tournament_statuses') } catch { }
+
   let query = supabase
     .from('tournaments')
     .select('*')

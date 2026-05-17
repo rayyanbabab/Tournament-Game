@@ -12,8 +12,10 @@ import { ThemeToggle } from '@/components/theme-toggle'
 export default async function AdminTournamentsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) redirect('/auth/login')
+
+  // Auto-sync status setiap kali halaman admin dimuat
+  try { await supabase.rpc('sync_tournament_statuses') } catch { }
 
   const { data: profile } = await supabase
     .from('profiles').select('role').eq('id', user.id).single()
