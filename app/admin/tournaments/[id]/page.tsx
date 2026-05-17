@@ -9,7 +9,6 @@ import {
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { AdminSidebar } from '@/components/admin/sidebar'
-import { UpdateStatusButton } from './update-status-button'
 import { RegistrationActions } from './registration-actions'
 import { getTournamentStatus } from '@/lib/utils'
 import { DeleteTournamentButton } from './delete-tournament-button'
@@ -239,11 +238,6 @@ export default async function AdminTournamentDetailPage({
                 </div>
               </div>
 
-              {/* Update Status */}
-              <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-3">
-                <h3 className="text-sm font-semibold text-foreground">Update Status</h3>
-                <UpdateStatusButton tournamentId={tournament.id} currentStatus={currentStatus} />
-              </div>
 
               {/* Rules */}
               {tournament.rules && (
