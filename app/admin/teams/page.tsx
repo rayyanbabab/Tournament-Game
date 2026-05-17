@@ -1,95 +1,118 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Users, Crown, ArrowRight } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Users, Crown, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { AdminSidebar } from '@/components/admin/sidebar'
+import { AdminPageHeader } from '@/components/admin/page-header'
 
 export default async function AdminTeamsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/auth/login')
-  }
+  if (!user) redirect('/auth/login')
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+    .from('profiles').select('role').eq('id', user.id).single()
 
-  if (profile?.role !== 'admin') {
-    redirect('/dashboard')
-  }
+  if (profile?.role !== 'admin') redirect('/dashboard')
 
   const { data: teams } = await supabase
     .from('teams')
-    .select(`
-      *,
-      captain:profiles!teams_captain_id_fkey(full_name, email),
-      team_members(count)
-    `)
+    .select('*, captain:profiles!teams_captain_id_fkey(full_name, email), team_members(count)')
     .order('created_at', { ascending: false })
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="flex min-h-screen bg-background">
       <AdminSidebar />
-      
-      <main className="flex-1 p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Daftar Tim</h1>
-          <p className="text-muted-foreground">Semua tim yang terdaftar di platform</p>
-        </div>
 
-        {teams && teams.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teams.map((team: any) => (
-              <Card key={team.id} className="border-border/50 hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-primary/10 rounded-xl">
-                      <Users className="h-6 w-6 text-primary" />
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
+          <span className="text-sm font-medium text-foreground">Daftar Tim</span>
+        </header>
+
+        <main className="flex-1 p-6 space-y-6">
+          <AdminPageHeader
+            title="Daftar Tim"
+            description="Semua tim yang terdaftar di platform GameArena"
+            breadcrumbs={[{ label: 'Tim' }]}
+          />
+
+          {teams && teams.length > 0 ? (
+            <div className="rounded-xl border border-border/60 overflow-hidden">
+              {/* Header */}
+              <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 px-5 py-3 bg-muted/30 border-b border-border/60 text-xs font-semibold uppercase tracking-wider text-muted-foreground items-center">
+                <span className="w-10">#</span>
+                <span>Tim</span>
+                <span className="w-40 hidden md:block">Kapten</span>
+                <span className="w-20 text-center">Anggota</span>
+                <span className="w-28 text-center">Dibuat</span>
+              </div>
+
+              {/* Rows */}
+              <div className="divide-y divide-border/60 bg-background">
+                {teams.map((team: any, index: number) => (
+                  <div
+                    key={team.id}
+                    className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 px-5 py-4 items-center hover:bg-muted/20 transition-colors"
+                  >
+                    {/* Index */}
+                    <div className="w-10 text-sm text-muted-foreground tabular-nums font-mono">{String(index + 1).padStart(2, '0')}</div>
+
+                    {/* Team */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="text-sm font-bold text-primary">{team.name[0].toUpperCase()}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{team.name}</p>
+                        {team.logo_url && (
+                          <p className="text-xs text-muted-foreground truncate">Logo tersedia</p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{team.name}</CardTitle>
-                      <CardDescription>
-                        {team.team_members?.[0]?.count || 0} anggota
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Crown className="h-4 w-4 text-yellow-500" />
-                      <span className="text-muted-foreground">Kapten:</span>
-                      <span className="font-medium text-foreground">
-                        {team.captain?.full_name || team.captain?.email}
+
+                    {/* Captain */}
+                    <div className="w-40 hidden md:flex items-center gap-1.5">
+                      <Crown className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                      <span className="text-xs text-muted-foreground truncate">
+                        {team.captain?.full_name || team.captain?.email || '-'}
                       </span>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      Dibuat: {format(new Date(team.created_at), 'dd MMM yyyy', { locale: id })}
+
+                    {/* Members */}
+                    <div className="w-20 flex justify-center items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-sm tabular-nums">{team.team_members?.[0]?.count || 0}</span>
+                    </div>
+
+                    {/* Created */}
+                    <div className="w-28 flex justify-center">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(team.created_at), 'dd MMM yyyy', { locale: id })}
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="border-border/50">
-            <CardContent className="py-16 text-center">
-              <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Belum Ada Tim</h3>
-              <p className="text-muted-foreground">Belum ada tim yang terdaftar di platform</p>
-            </CardContent>
-          </Card>
-        )}
-      </main>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <Card className="border-border/60">
+              <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-6">
+                  <Users className="h-8 w-8 text-muted-foreground/50" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Belum Ada Tim</h3>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Tim akan muncul di sini setelah pengguna mendaftar dan membuat tim mereka.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </main>
+      </div>
     </div>
   )
 }

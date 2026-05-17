@@ -2,141 +2,183 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
   Trophy, 
   Plus,
   Calendar,
   Users,
-  Gamepad2
+  Gamepad2,
+  Search,
+  ArrowRight,
+  Edit,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { AdminSidebar } from '@/components/admin/sidebar'
+import { AdminPageHeader } from '@/components/admin/page-header'
 import { getTournamentStatus } from '@/lib/utils'
+import { Card, CardContent } from '@/components/ui/card'
 
 export default async function AdminTournamentsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/auth/login')
-  }
+  if (!user) redirect('/auth/login')
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+    .from('profiles').select('role').eq('id', user.id).single()
 
-  if (profile?.role !== 'admin') {
-    redirect('/dashboard')
-  }
+  if (profile?.role !== 'admin') redirect('/dashboard')
 
   const { data: tournaments } = await supabase
     .from('tournaments')
-    .select('*')
+    .select('*, tournament_registrations(count)')
     .order('created_at', { ascending: false })
 
-  const statusColors: Record<string, string> = {
-    upcoming: 'bg-primary/10 text-primary border-primary/20',
-    registration_closed: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-    ongoing: 'bg-green-500/10 text-green-600 border-green-500/20',
-    completed: 'bg-muted text-muted-foreground border-border',
-    cancelled: 'bg-destructive/10 text-destructive border-destructive/20',
-  }
-
-  const statusLabels: Record<string, string> = {
-    upcoming: 'Pendaftaran Buka',
-    registration_closed: 'Pendaftaran Tutup',
-    ongoing: 'Berlangsung',
-    completed: 'Selesai',
-    cancelled: 'Dibatalkan',
+  const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
+    upcoming: { label: 'Pendaftaran Buka', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', dot: 'bg-blue-500' },
+    registration_closed: { label: 'Pendaftaran Tutup', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20', dot: 'bg-amber-500' },
+    ongoing: { label: 'Berlangsung', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', dot: 'bg-emerald-500' },
+    completed: { label: 'Selesai', color: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
+    cancelled: { label: 'Dibatalkan', color: 'bg-red-500/10 text-red-600 border-red-500/20', dot: 'bg-red-500' },
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="flex min-h-screen bg-background">
       <AdminSidebar />
-      
-      <main className="flex-1 p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Kelola Turnamen</h1>
-            <p className="text-muted-foreground">Buat dan kelola turnamen game online</p>
-          </div>
-          <Button asChild>
-            <Link href="/admin/tournaments/create">
-              <Plus className="mr-2 h-4 w-4" />
-              Buat Turnamen
-            </Link>
-          </Button>
-        </div>
 
-        {tournaments && tournaments.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tournaments.map((tournament: any) => (
-              <Card key={tournament.id} className="border-border/50 overflow-hidden hover:shadow-lg transition-shadow">
-                {tournament.image_url ? (
-                  <div className="h-32 relative overflow-hidden bg-muted/30 p-2">
-                    <img src={tournament.image_url} alt={tournament.name} className="w-full h-full object-contain" />
-                  </div>
-                ) : (
-                  <div className="h-32 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                    <Gamepad2 className="h-12 w-12 text-primary/50" />
-                  </div>
-                )}
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="secondary">{tournament.game}</Badge>
-                    <Badge className={statusColors[getTournamentStatus(tournament)]}>
-                      {statusLabels[getTournamentStatus(tournament)]}
-                    </Badge>
-                  </div>
-                  <CardTitle className="line-clamp-1">{tournament.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm mb-4">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <span>{format(new Date(tournament.start_date), 'dd MMM yyyy', { locale: id })}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>Max {tournament.max_teams} tim</span>
-                    </div>
-                    {tournament.prize_pool && (
-                      <div className="flex items-center gap-2 text-primary font-medium">
-                        <Trophy className="h-4 w-4" />
-                        <span>{tournament.prize_pool}</span>
-                      </div>
-                    )}
-                  </div>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href={`/admin/tournaments/${tournament.id}`}>
-                      Kelola
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="border-border/50">
-            <CardContent className="py-16 text-center">
-              <Trophy className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Belum Ada Turnamen</h3>
-              <p className="text-muted-foreground mb-6">Buat turnamen pertama Anda sekarang</p>
-              <Button asChild>
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
+          <nav className="text-sm text-muted-foreground">
+            <span className="text-foreground font-medium">Kelola Turnamen</span>
+          </nav>
+        </header>
+
+        <main className="flex-1 p-6 space-y-6">
+          <AdminPageHeader
+            title="Kelola Turnamen"
+            description="Buat, edit, dan kelola semua turnamen game online"
+            breadcrumbs={[{ label: 'Turnamen' }]}
+            actions={
+              <Button asChild size="sm" className="h-9 gap-2 shadow-sm">
                 <Link href="/admin/tournaments/create">
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="h-4 w-4" />
                   Buat Turnamen
                 </Link>
               </Button>
-            </CardContent>
-          </Card>
-        )}
-      </main>
+            }
+          />
+
+          {tournaments && tournaments.length > 0 ? (
+            <div className="rounded-xl border border-border/60 overflow-hidden">
+              {/* Table Header */}
+              <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/30 border-b border-border/60 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <span>Turnamen</span>
+                <span className="text-center w-28">Status</span>
+                <span className="text-center w-20">Tim</span>
+                <span className="text-center w-32">Mulai</span>
+                <span className="text-center w-20">Aksi</span>
+              </div>
+
+              {/* Table Rows */}
+              <div className="divide-y divide-border/60 bg-background">
+                {tournaments.map((tournament: any) => {
+                  const status = getTournamentStatus(tournament)
+                  const config = statusConfig[status]
+                  const regCount = tournament.tournament_registrations?.[0]?.count || 0
+
+                  return (
+                    <div
+                      key={tournament.id}
+                      className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-4 items-center hover:bg-muted/20 transition-colors group"
+                    >
+                      {/* Tournament Info */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                          {tournament.image_url ? (
+                            <img src={tournament.image_url} alt={tournament.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Gamepad2 className="h-5 w-5 text-primary/50" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">{tournament.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <Badge variant="secondary" className="text-[10px] h-4 px-1.5 font-medium">{tournament.game}</Badge>
+                            {tournament.prize_pool && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Trophy className="h-3 w-3" />
+                                {tournament.prize_pool}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div className="w-28 flex justify-center">
+                        <Badge variant="outline" className={`text-[11px] font-medium ${config.color} flex items-center gap-1.5`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${config.dot} shrink-0`} />
+                          {config.label}
+                        </Badge>
+                      </div>
+
+                      {/* Teams */}
+                      <div className="w-20 flex justify-center">
+                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <Users className="h-3.5 w-3.5" />
+                          <span className="tabular-nums">{regCount}/{tournament.max_teams}</span>
+                        </div>
+                      </div>
+
+                      {/* Date */}
+                      <div className="w-32 flex justify-center">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {format(new Date(tournament.start_date), 'dd MMM yyyy', { locale: id })}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="w-20 flex justify-center gap-1">
+                        <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Link href={`/admin/tournaments/${tournament.id}/edit`}>
+                            <Edit className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Link href={`/admin/tournaments/${tournament.id}`}>
+                            <ArrowRight className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <Card className="border-border/60">
+              <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center mb-6">
+                  <Trophy className="h-8 w-8 text-muted-foreground/50" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Belum Ada Turnamen</h3>
+                <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+                  Mulai buat turnamen pertama Anda dan undang para gamer untuk berkompetisi!
+                </p>
+                <Button asChild className="h-9 gap-2">
+                  <Link href="/admin/tournaments/create">
+                    <Plus className="h-4 w-4" />
+                    Buat Turnamen Pertama
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </main>
+      </div>
     </div>
   )
 }

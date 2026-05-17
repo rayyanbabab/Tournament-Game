@@ -1,182 +1,186 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Navbar } from '@/components/navbar'
-import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
   Trophy, 
   Users, 
-  Calendar, 
+  Calendar,
   Plus,
   ArrowRight,
+  Gamepad2,
   Clock,
-  Gamepad2
+  Target,
+  Star,
+  ChevronRight,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { Navbar } from '@/components/navbar'
+import { Footer } from '@/components/footer'
+import { UserSidebar } from '@/components/user/sidebar'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/auth/login')
-  }
+  if (!user) redirect('/auth/login')
 
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+    .from('profiles').select('*').eq('id', user.id).single()
 
-  // Get user's teams
   const { data: teams } = await supabase
     .from('teams')
-    .select(`
-      *,
-      team_members(count)
-    `)
+    .select('*, team_members(count)')
     .eq('captain_id', user.id)
 
-  // Get teams user is member of
   const { data: memberTeams } = await supabase
     .from('team_members')
-    .select(`
-      *,
-      teams(*)
-    `)
+    .select('*, teams(*)')
     .eq('user_id', user.id)
 
-  // Get user's registrations
   const { data: registrations } = await supabase
     .from('tournament_registrations')
-    .select(`
-      *,
-      tournaments(*),
-      teams(name)
-    `)
+    .select('*, tournaments(*), teams(name)')
     .eq('registered_by', user.id)
     .order('registered_at', { ascending: false })
     .limit(5)
 
   const statusColors: Record<string, string> = {
-    pending: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-    approved: 'bg-green-500/10 text-green-600 border-green-500/20',
-    rejected: 'bg-destructive/10 text-destructive border-destructive/20',
+    pending: 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400',
+    approved: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400',
+    rejected: 'bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400',
     withdrawn: 'bg-muted text-muted-foreground border-border',
   }
-
   const statusLabels: Record<string, string> = {
-    pending: 'Menunggu',
-    approved: 'Disetujui',
-    rejected: 'Ditolak',
-    withdrawn: 'Dibatalkan',
+    pending: 'Menunggu', approved: 'Disetujui', rejected: 'Ditolak', withdrawn: 'Dibatalkan',
   }
 
+  const approvedRegistrations = registrations?.filter((r: any) => r.status === 'approved') || []
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
-      <main className="flex-1 py-8">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Selamat Datang, {profile?.full_name || 'Gamer'}!
-            </h1>
-            <p className="text-muted-foreground">Kelola tim dan pendaftaran turnamen Anda</p>
+    <div className="flex min-h-screen bg-background">
+      <UserSidebar profile={profile} />
+
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header */}
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/60 bg-background/80 backdrop-blur px-6">
+          <div className="flex items-center gap-2">
+            <nav className="flex items-center gap-1 text-sm text-muted-foreground">
+              <span className="text-foreground font-medium">Dashboard</span>
+            </nav>
+          </div>
+          <Button asChild size="sm" className="h-9 gap-2 shadow-sm">
+            <Link href="/tournaments">
+              <Trophy className="h-4 w-4" />
+              Cari Turnamen
+            </Link>
+          </Button>
+        </header>
+
+        <main className="flex-1 p-6 space-y-6">
+          {/* Welcome Banner */}
+          <div className="relative overflow-hidden rounded-xl border border-border/60 bg-gradient-to-br from-primary/10 via-background to-background p-6">
+            <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-primary/5 -translate-y-1/2 translate-x-1/2" />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center ring-2 ring-primary/20">
+                  <span className="text-xl font-bold text-primary">
+                    {(profile?.full_name || 'G')[0].toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Selamat Datang</p>
+                  <h1 className="text-xl font-bold text-foreground">
+                    {profile?.full_name || 'Gamer'} 👾
+                  </h1>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground max-w-lg">
+                Kelola tim dan daftar turnamen gaming favorit Anda. Jadilah yang terdepan!
+              </p>
+            </div>
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="border-border/50">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-xl">
-                    <Users className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{teams?.length || 0}</p>
-                    <p className="text-sm text-muted-foreground">Tim Anda</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-border/50">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-xl">
-                    <Gamepad2 className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{memberTeams?.length || 0}</p>
-                    <p className="text-sm text-muted-foreground">Tim Bergabung</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-border/50">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-xl">
-                    <Trophy className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{registrations?.length || 0}</p>
-                    <p className="text-sm text-muted-foreground">Pendaftaran</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: 'Tim Anda', value: teams?.length || 0, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', href: '/dashboard/teams/create', cta: 'Buat Tim' },
+              { label: 'Tim Bergabung', value: memberTeams?.length || 0, icon: Gamepad2, color: 'text-violet-500', bg: 'bg-violet-500/10', href: '/teams', cta: 'Temukan Tim' },
+              { label: 'Turnamen Didaftar', value: registrations?.length || 0, icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10', href: '/tournaments', cta: 'Daftar Sekarang' },
+            ].map((stat, i) => {
+              const Icon = stat.icon
+              return (
+                <Card key={i} className="border-border/60 hover:border-border hover:shadow-md transition-all group">
+                  <CardContent className="p-5">
+                    <div className={`h-10 w-10 rounded-xl ${stat.bg} flex items-center justify-center mb-4`}>
+                      <Icon className={`h-5 w-5 ${stat.color}`} />
+                    </div>
+                    <div className="text-3xl font-bold tracking-tight text-foreground tabular-nums">{stat.value}</div>
+                    <p className="text-sm font-medium text-foreground mt-1">{stat.label}</p>
+                    <Link href={stat.href} className={`text-xs ${stat.color} flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                      {stat.cta}
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* My Teams */}
-            <Card className="border-border/50">
-              <CardHeader className="flex flex-row items-center justify-between">
+            <Card className="border-border/60">
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div>
-                  <CardTitle>Tim Saya</CardTitle>
-                  <CardDescription>Tim yang Anda kelola sebagai kapten</CardDescription>
+                  <CardTitle className="text-base font-semibold">Tim Saya</CardTitle>
+                  <CardDescription className="text-xs mt-0.5">Tim yang Anda kelola sebagai kapten</CardDescription>
                 </div>
-                <Button asChild size="sm">
+                <Button asChild size="sm" variant="outline" className="h-8 text-xs gap-1.5">
                   <Link href="/dashboard/teams/create">
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="h-3.5 w-3.5" />
                     Buat Tim
                   </Link>
                 </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 {teams && teams.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="divide-y divide-border/60">
                     {teams.map((team: any) => (
                       <Link
                         key={team.id}
                         href={`/dashboard/teams/${team.id}`}
-                        className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors"
+                        className="flex items-center gap-3 px-5 py-3.5 hover:bg-muted/30 transition-colors group/item"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-primary/10 rounded-lg">
-                            <Users className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">{team.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {team.team_members?.[0]?.count || 0} anggota
-                            </p>
-                          </div>
+                        <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover/item:bg-primary transition-colors">
+                          <span className="text-sm font-bold text-primary group-hover/item:text-primary-foreground transition-colors">
+                            {team.name[0].toUpperCase()}
+                          </span>
                         </div>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{team.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {team.team_members?.[0]?.count || 0} anggota
+                          </p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover/item:text-muted-foreground transition-colors shrink-0" />
                       </Link>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-4">Anda belum memiliki tim</p>
-                    <Button asChild>
-                      <Link href="/dashboard/teams/create">Buat Tim Pertama Anda</Link>
+                  <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+                    <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                      <Users className="h-6 w-6 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground">Belum Ada Tim</p>
+                    <p className="text-xs text-muted-foreground mt-1 mb-4">Buat tim untuk mulai berkompetisi</p>
+                    <Button asChild size="sm" className="h-8 text-xs">
+                      <Link href="/dashboard/teams/create">
+                        <Plus className="h-3.5 w-3.5 mr-1.5" />
+                        Buat Tim Pertama
+                      </Link>
                     </Button>
                   </div>
                 )}
@@ -184,51 +188,57 @@ export default async function DashboardPage() {
             </Card>
 
             {/* Recent Registrations */}
-            <Card className="border-border/50">
-              <CardHeader className="flex flex-row items-center justify-between">
+            <Card className="border-border/60">
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div>
-                  <CardTitle>Pendaftaran Terakhir</CardTitle>
-                  <CardDescription>Status pendaftaran turnamen Anda</CardDescription>
+                  <CardTitle className="text-base font-semibold">Pendaftaran Terakhir</CardTitle>
+                  <CardDescription className="text-xs mt-0.5">Status pendaftaran turnamen Anda</CardDescription>
                 </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/dashboard/registrations">
-                    Lihat Semua
+                <Button asChild variant="ghost" size="sm" className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground">
+                  <Link href="/tournaments">
+                    Cari Turnamen
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 {registrations && registrations.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="divide-y divide-border/60">
                     {registrations.map((reg: any) => (
                       <div
                         key={reg.id}
-                        className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg"
+                        className="flex items-center gap-3 px-5 py-3.5 hover:bg-muted/30 transition-colors"
                       >
+                        <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                          <Trophy className="h-4 w-4 text-muted-foreground" />
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">
-                            {reg.tournaments?.name}
-                          </p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>Tim: {reg.teams?.name}</span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {format(new Date(reg.registered_at), 'dd MMM yyyy', { locale: id })}
-                            </span>
+                          <p className="text-sm font-medium text-foreground truncate">{reg.tournaments?.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                            <span className="truncate">{reg.teams?.name}</span>
+                            <span>·</span>
+                            <Clock className="h-3 w-3 shrink-0" />
+                            <span className="shrink-0">{format(new Date(reg.registered_at), 'dd MMM', { locale: id })}</span>
                           </div>
                         </div>
-                        <Badge className={statusColors[reg.status]}>
+                        <Badge variant="outline" className={`shrink-0 text-[11px] font-medium ${statusColors[reg.status]}`}>
                           {statusLabels[reg.status]}
                         </Badge>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-4">Belum ada pendaftaran turnamen</p>
-                    <Button asChild>
-                      <Link href="/tournaments">Jelajahi Turnamen</Link>
+                  <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+                    <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                      <Target className="h-6 w-6 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground">Belum Ada Pendaftaran</p>
+                    <p className="text-xs text-muted-foreground mt-1 mb-4">Daftar turnamen sekarang dan buktikan skill Anda!</p>
+                    <Button asChild size="sm" className="h-8 text-xs">
+                      <Link href="/tournaments">
+                        <Trophy className="h-3.5 w-3.5 mr-1.5" />
+                        Jelajahi Turnamen
+                      </Link>
                     </Button>
                   </div>
                 )}
@@ -236,51 +246,41 @@ export default async function DashboardPage() {
             </Card>
           </div>
 
-          {/* Upcoming Tournaments */}
-          <Card className="border-border/50 mt-8">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Turnamen Mendatang Anda</CardTitle>
-                <CardDescription>Turnamen yang sudah Anda daftarkan</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {registrations && registrations.filter((r: any) => r.status === 'approved').length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {registrations
-                    .filter((r: any) => r.status === 'approved')
-                    .map((reg: any) => (
-                      <Card key={reg.id} className="border-border/50">
-                        <CardContent className="pt-4">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                              <Gamepad2 className="h-5 w-5 text-primary" />
-                            </div>
-                            <Badge variant="secondary">{reg.tournaments?.game}</Badge>
-                          </div>
-                          <p className="font-medium text-foreground mb-2">{reg.tournaments?.name}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
-                            <span>
-                              {format(new Date(reg.tournaments?.start_date), 'dd MMM yyyy', { locale: id })}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+          {/* Approved Tournaments */}
+          {approvedRegistrations.length > 0 && (
+            <Card className="border-border/60">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <Star className="h-4 w-4 text-emerald-500" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold">Turnamen Disetujui</CardTitle>
+                    <CardDescription className="text-xs mt-0.5">Turnamen yang sudah Anda daftarkan dan disetujui</CardDescription>
+                  </div>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Belum ada turnamen yang disetujui</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {approvedRegistrations.map((reg: any) => (
+                    <div key={reg.id} className="relative overflow-hidden rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 hover:bg-emerald-500/10 transition-colors">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge variant="secondary" className="text-[10px]">{reg.tournaments?.game}</Badge>
+                        <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-500/30">Disetujui</Badge>
+                      </div>
+                      <p className="text-sm font-semibold text-foreground mb-2 line-clamp-1">{reg.tournaments?.name}</p>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span>{format(new Date(reg.tournaments?.start_date), 'dd MMMM yyyy', { locale: id })}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-
-      <Footer />
+              </CardContent>
+            </Card>
+          )}
+        </main>
+      </div>
     </div>
   )
 }

@@ -14,7 +14,10 @@ export interface Tournament {
   name: string
   game: string
   description: string | null
-  banner_url: string | null
+  image_url: string | null
+  registration_fee: string | null
+  location: string | null
+  contact_info: string | null
   start_date: string
   end_date: string
   registration_deadline: string

@@ -9,13 +9,11 @@ import {
   LayoutDashboard,
   Trophy,
   Users,
-  ClipboardList,
-  Home,
+  Settings,
   LogOut,
+  Home,
   ChevronLeft,
   ChevronRight,
-  Settings,
-  BarChart3,
   Shield,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -25,15 +23,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import type { Profile } from '@/lib/types'
 
 const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/admin/tournaments', label: 'Turnamen', icon: Trophy },
-  { href: '/admin/registrations', label: 'Pendaftaran', icon: ClipboardList },
-  { href: '/admin/teams', label: 'Tim', icon: Users },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/dashboard/teams', label: 'Tim Saya', icon: Users },
+  { href: '/tournaments', label: 'Turnamen', icon: Trophy },
 ]
 
-export function AdminSidebar() {
+interface UserSidebarProps {
+  profile?: Profile | null
+}
+
+export function UserSidebar({ profile }: UserSidebarProps) {
   const pathname = usePathname()
   const supabase = createClient()
   const [collapsed, setCollapsed] = useState(false)
@@ -70,24 +72,43 @@ export function AdminSidebar() {
 
         {/* Logo */}
         <div className={cn('flex items-center border-b border-border/60 h-16 px-4', collapsed ? 'justify-center' : 'gap-3')}>
-          <Link href="/admin" className="flex items-center gap-3 shrink-0">
+          <Link href="/" className="flex items-center gap-3 shrink-0">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/25 shrink-0">
               <Gamepad2 className="h-5 w-5 text-primary-foreground" />
             </div>
             {!collapsed && (
               <div className="overflow-hidden">
                 <p className="text-sm font-bold text-foreground leading-none">GameArena</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Admin Panel</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Player Portal</p>
               </div>
             )}
           </Link>
         </div>
 
+        {/* User Info */}
+        {!collapsed && profile && (
+          <div className="px-4 py-4 border-b border-border/60">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/20 shrink-0">
+                <span className="text-sm font-bold text-primary">
+                  {(profile.full_name || 'G')[0].toUpperCase()}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{profile.full_name || 'Gamer'}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{profile.email}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Navigation */}
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          <div className={cn('mb-2 px-2', collapsed && 'hidden')}>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Menu</p>
-          </div>
+          {!collapsed && (
+            <div className="mb-2 px-2">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Navigasi</p>
+            </div>
+          )}
           {navItems.map((item) => {
             const active = isActive(item)
             const Icon = item.icon
@@ -122,14 +143,43 @@ export function AdminSidebar() {
                     : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                 )}
               >
-                <Icon className="h-4.5 w-4.5 shrink-0" style={{ width: '1.125rem', height: '1.125rem' }} />
+                <Icon className="shrink-0" style={{ width: '1.125rem', height: '1.125rem' }} />
                 <span className="truncate">{item.label}</span>
-                {active && (
-                  <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-foreground/60" />
-                )}
               </Link>
             )
           })}
+
+          {/* Admin link if admin */}
+          {profile?.role === 'admin' && (
+            <>
+              {!collapsed && (
+                <div className="pt-4 pb-2 px-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Admin</p>
+                </div>
+              )}
+              {collapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href="/admin"
+                      className="flex h-10 w-10 items-center justify-center rounded-lg mx-auto text-amber-500 hover:bg-amber-500/10 transition-colors"
+                    >
+                      <Shield className="h-5 w-5" />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="font-medium">Admin Panel</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-3 h-10 px-3 rounded-lg text-sm font-medium text-amber-500 hover:bg-amber-500/10 transition-colors"
+                >
+                  <Shield style={{ width: '1.125rem', height: '1.125rem' }} className="shrink-0" />
+                  <span>Admin Panel</span>
+                </Link>
+              )}
+            </>
+          )}
         </nav>
 
         {/* Divider */}
@@ -147,10 +197,10 @@ export function AdminSidebar() {
                     href="/"
                     className="flex h-10 w-10 items-center justify-center rounded-lg mx-auto text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
                   >
-                    <Home className="h-4.5 w-4.5" style={{ width: '1.125rem', height: '1.125rem' }} />
+                    <Home style={{ width: '1.125rem', height: '1.125rem' }} />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent side="right">Kembali ke Website</TooltipContent>
+                <TooltipContent side="right">Beranda</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -158,7 +208,7 @@ export function AdminSidebar() {
                     onClick={handleSignOut}
                     className="flex h-10 w-10 items-center justify-center rounded-lg mx-auto text-destructive hover:bg-destructive/10 transition-colors"
                   >
-                    <LogOut className="h-4.5 w-4.5" style={{ width: '1.125rem', height: '1.125rem' }} />
+                    <LogOut style={{ width: '1.125rem', height: '1.125rem' }} />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="right">Keluar</TooltipContent>
@@ -170,14 +220,14 @@ export function AdminSidebar() {
                 href="/"
                 className="flex items-center gap-3 h-10 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
               >
-                <Home className="h-4.5 w-4.5 shrink-0" style={{ width: '1.125rem', height: '1.125rem' }} />
-                <span>Kembali ke Website</span>
+                <Home className="shrink-0" style={{ width: '1.125rem', height: '1.125rem' }} />
+                <span>Beranda</span>
               </Link>
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-3 h-10 px-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
               >
-                <LogOut className="h-4.5 w-4.5 shrink-0" style={{ width: '1.125rem', height: '1.125rem' }} />
+                <LogOut className="shrink-0" style={{ width: '1.125rem', height: '1.125rem' }} />
                 <span>Keluar</span>
               </button>
             </>
