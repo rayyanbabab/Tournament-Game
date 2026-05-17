@@ -10,13 +10,16 @@ import {
   Trophy,
   Users,
   ClipboardList,
-  Home,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   Settings,
-  BarChart3,
-  Shield,
+  Home,
+  PanelLeft,
+  Menu,
+  X,
+  Star,
+  TrendingUp,
+  Banknote,
+  LayoutTemplate,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -25,165 +28,272 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
 
-const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/admin/tournaments', label: 'Turnamen', icon: Trophy },
-  { href: '/admin/registrations', label: 'Pendaftaran', icon: ClipboardList },
-  { href: '/admin/teams', label: 'Tim', icon: Users },
+const sections = [
+  {
+    label: 'Dashboards',
+    items: [
+      { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
+      { href: '/admin/tournaments', label: 'Turnamen', icon: Trophy },
+    ],
+  },
+  {
+    label: 'Manajemen',
+    items: [
+      { href: '/admin/registrations', label: 'Pendaftaran', icon: ClipboardList },
+      { href: '/admin/payments', label: 'Pembayaran', icon: Banknote },
+      { href: '/admin/teams', label: 'Tim', icon: Users },
+    ],
+  },
+  {
+    label: 'Halaman',
+    items: [
+      { href: '/', label: 'Landing Page', icon: Home },
+      { href: '/admin/content', label: 'Edit Konten', icon: LayoutTemplate },
+      { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
+    ],
+  },
 ]
 
-export function AdminSidebar() {
+function SidebarNav({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
   const supabase = createClient()
-  const [collapsed, setCollapsed] = useState(false)
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/'
-  }
 
   const isActive = (item: { href: string; exact?: boolean }) => {
     if (item.exact) return pathname === item.href
     return pathname === item.href || pathname.startsWith(item.href + '/')
   }
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 h-14 px-4 border-b border-border/60 shrink-0">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground shrink-0">
+          <Gamepad2 className="h-4 w-4 text-background" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-foreground leading-none">GameArena</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">Admin Dashboard</p>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-4">
+        {sections.map((section) => (
+          <div key={section.label}>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 px-2 mb-1">
+              {section.label}
+            </p>
+            <div className="space-y-0.5">
+              {section.items.map((item) => {
+                const active = isActive(item)
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    className={cn(
+                      'flex items-center gap-2.5 h-9 px-3 rounded-md text-sm transition-colors',
+                      active
+                        ? 'bg-accent text-accent-foreground font-medium'
+                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* Footer */}
+      <div className="border-t border-border/60 p-3">
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-2.5 h-9 px-3 rounded-md text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          <span>Keluar</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export function AdminSidebar() {
+  const pathname = usePathname()
+  const supabase = createClient()
+  const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  const isActive = (item: { href: string; exact?: boolean }) => {
+    if (item.exact) return pathname === item.href
+    return pathname === item.href || pathname.startsWith(item.href + '/')
+  }
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
+
   return (
     <TooltipProvider delayDuration={0}>
+      {/* ── DESKTOP SIDEBAR ── */}
       <aside
         className={cn(
-          'relative flex flex-col border-r border-border/60 bg-sidebar min-h-screen transition-all duration-300 ease-in-out',
-          collapsed ? 'w-[70px]' : 'w-[240px]'
+          'hidden md:flex flex-col border-r border-border/60 bg-sidebar min-h-screen transition-all duration-300 ease-in-out shrink-0',
+          collapsed ? 'w-[56px]' : 'w-[220px]'
         )}
       >
-        {/* Collapse Toggle */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-6 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-background shadow-sm hover:bg-accent transition-colors"
-        >
-          {collapsed ? (
-            <ChevronRight className="h-3 w-3 text-muted-foreground" />
-          ) : (
-            <ChevronLeft className="h-3 w-3 text-muted-foreground" />
-          )}
-        </button>
-
         {/* Logo */}
-        <div className={cn('flex items-center border-b border-border/60 h-16 px-4', collapsed ? 'justify-center' : 'gap-3')}>
-          <Link href="/admin" className="flex items-center gap-3 shrink-0">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/25 shrink-0">
-              <Gamepad2 className="h-5 w-5 text-primary-foreground" />
+        <div className={cn(
+          'flex items-center h-14 px-3 border-b border-border/60 shrink-0',
+          collapsed ? 'justify-center' : 'gap-2.5 justify-between'
+        )}>
+          <Link href="/admin" className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground shrink-0">
+              <Gamepad2 className="h-4 w-4 text-background" />
             </div>
             {!collapsed && (
-              <div className="overflow-hidden">
-                <p className="text-sm font-bold text-foreground leading-none">GameArena</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Admin Panel</p>
+              <div className="min-w-0 overflow-hidden">
+                <p className="text-sm font-bold text-foreground leading-none truncate">GameArena</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 truncate">Admin Dashboard</p>
               </div>
             )}
           </Link>
+          {!collapsed && (
+            <button
+              onClick={() => setCollapsed(true)}
+              className="flex h-6 w-6 items-center justify-center rounded-md hover:bg-accent text-muted-foreground shrink-0"
+            >
+              <PanelLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
+
+        {collapsed && (
+          <button
+            onClick={() => setCollapsed(false)}
+            className="flex h-10 w-full items-center justify-center hover:bg-accent text-muted-foreground border-b border-border/40"
+          >
+            <PanelLeft className="h-3.5 w-3.5" />
+          </button>
+        )}
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          <div className={cn('mb-2 px-2', collapsed && 'hidden')}>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Menu</p>
-          </div>
-          {navItems.map((item) => {
-            const active = isActive(item)
-            const Icon = item.icon
-
-            return collapsed ? (
-              <Tooltip key={item.href}>
-                <TooltipTrigger asChild>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      'flex h-10 w-10 items-center justify-center rounded-lg mx-auto transition-all duration-200',
-                      active
-                        ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-                        : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="font-medium">
-                  {item.label}
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 h-10 px-3 rounded-lg text-sm font-medium transition-all duration-200',
-                  active
-                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-                    : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                )}
-              >
-                <Icon className="h-4.5 w-4.5 shrink-0" style={{ width: '1.125rem', height: '1.125rem' }} />
-                <span className="truncate">{item.label}</span>
-                {active && (
-                  <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary-foreground/60" />
-                )}
-              </Link>
-            )
-          })}
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+          {sections.map((section) => (
+            <div key={section.label}>
+              {!collapsed && (
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50 px-2 mb-1">
+                  {section.label}
+                </p>
+              )}
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const active = isActive(item)
+                  const Icon = item.icon
+                  return collapsed ? (
+                    <Tooltip key={item.href}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            'flex h-9 w-9 items-center justify-center rounded-md mx-auto transition-colors',
+                            active
+                              ? 'bg-accent text-accent-foreground font-medium'
+                              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="text-xs font-medium">
+                        {item.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        'flex items-center gap-2.5 h-8 px-2 rounded-md text-sm transition-colors',
+                        active
+                          ? 'bg-accent text-accent-foreground font-medium'
+                          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      )}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* Divider */}
-        <div className="px-3">
-          <div className="border-t border-border/60" />
-        </div>
-
         {/* Footer */}
-        <div className="p-3 space-y-1">
+        <div className="border-t border-border/60 p-2 shrink-0">
           {collapsed ? (
-            <>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link
-                    href="/"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg mx-auto text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-                  >
-                    <Home className="h-4.5 w-4.5" style={{ width: '1.125rem', height: '1.125rem' }} />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right">Kembali ke Website</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={handleSignOut}
-                    className="flex h-10 w-10 items-center justify-center rounded-lg mx-auto text-destructive hover:bg-destructive/10 transition-colors"
-                  >
-                    <LogOut className="h-4.5 w-4.5" style={{ width: '1.125rem', height: '1.125rem' }} />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Keluar</TooltipContent>
-              </Tooltip>
-            </>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleSignOut}
+                  className="flex h-9 w-9 items-center justify-center rounded-md mx-auto text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="text-xs">Keluar</TooltipContent>
+            </Tooltip>
           ) : (
-            <>
-              <Link
-                href="/"
-                className="flex items-center gap-3 h-10 px-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-              >
-                <Home className="h-4.5 w-4.5 shrink-0" style={{ width: '1.125rem', height: '1.125rem' }} />
-                <span>Kembali ke Website</span>
-              </Link>
-              <button
-                onClick={handleSignOut}
-                className="w-full flex items-center gap-3 h-10 px-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
-              >
-                <LogOut className="h-4.5 w-4.5 shrink-0" style={{ width: '1.125rem', height: '1.125rem' }} />
-                <span>Keluar</span>
-              </button>
-            </>
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-2.5 h-8 px-2 rounded-md text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span>Keluar</span>
+            </button>
           )}
         </div>
       </aside>
+
+      {/* ── MOBILE HEADER (hamburger) ── */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-border/60 bg-background/90 backdrop-blur px-4">
+        <Link href="/admin" className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground">
+            <Gamepad2 className="h-4 w-4 text-background" />
+          </div>
+          <span className="text-sm font-bold">GameArena Admin</span>
+        </Link>
+
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-[280px]">
+            <SidebarNav onClose={() => setMobileOpen(false)} />
+          </SheetContent>
+        </Sheet>
+      </div>
     </TooltipProvider>
   )
 }

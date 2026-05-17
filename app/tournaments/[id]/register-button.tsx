@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -28,18 +29,36 @@ interface RegisterTournamentButtonProps {
   tournamentId: string
   teams: { id: string; name: string }[]
   teamSize: number
+  registrationFee: string | null
 }
 
-export function RegisterTournamentButton({ tournamentId, teams, teamSize }: RegisterTournamentButtonProps) {
+export function RegisterTournamentButton({ 
+  tournamentId, 
+  teams, 
+  teamSize,
+  registrationFee
+}: RegisterTournamentButtonProps) {
   const [open, setOpen] = useState(false)
   const [selectedTeam, setSelectedTeam] = useState('')
+  const [paymentProof, setPaymentProof] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
+  const isFree = !registrationFee || 
+    registrationFee.trim().toLowerCase() === 'gratis' || 
+    registrationFee.trim() === '0' ||
+    registrationFee.trim() === '-' ||
+    registrationFee.trim().toLowerCase() === 'free'
+
   const handleRegister = async () => {
     if (!selectedTeam) {
       toast.error('Pilih tim terlebih dahulu')
+      return
+    }
+
+    if (!isFree && !paymentProof) {
+      toast.error('Bukti pembayaran wajib diunggah')
       return
     }
 
@@ -67,6 +86,32 @@ export function RegisterTournamentButton({ tournamentId, teams, teamSize }: Regi
         return
       }
 
+      let paymentProofUrl = null
+
+      // Upload payment proof if not free
+      if (!isFree && paymentProof) {
+        const fileExt = paymentProof.name.split('.').pop()
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+        const filePath = `${user.id}/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('payment_proofs')
+          .upload(filePath, paymentProof, {
+            cacheControl: '3600',
+            upsert: false
+          })
+
+        if (uploadError) {
+          throw new Error('Gagal mengunggah bukti pembayaran: ' + uploadError.message)
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('payment_proofs')
+          .getPublicUrl(filePath)
+
+        paymentProofUrl = publicUrl
+      }
+
       // Register team
       const { error } = await supabase
         .from('tournament_registrations')
@@ -75,6 +120,7 @@ export function RegisterTournamentButton({ tournamentId, teams, teamSize }: Regi
           team_id: selectedTeam,
           registered_by: user.id,
           status: 'pending',
+          payment_proof_url: paymentProofUrl,
         })
 
       if (error) {
@@ -89,8 +135,8 @@ export function RegisterTournamentButton({ tournamentId, teams, teamSize }: Regi
       toast.success('Pendaftaran berhasil! Menunggu persetujuan admin.')
       setOpen(false)
       router.refresh()
-    } catch {
-      toast.error('Terjadi kesalahan saat mendaftar')
+    } catch (err: any) {
+      toast.error(err.message || 'Terjadi kesalahan saat mendaftar')
     } finally {
       setLoading(false)
     }
@@ -124,12 +170,29 @@ export function RegisterTournamentButton({ tournamentId, teams, teamSize }: Regi
               </SelectContent>
             </Select>
           </div>
+
+          {!isFree && (
+            <div className="space-y-2 mt-4 p-4 bg-muted/30 rounded-lg border border-border/50">
+              <div className="mb-3">
+                <p className="text-sm font-medium mb-1">Biaya Pendaftaran</p>
+                <p className="text-lg font-bold text-primary">{registrationFee}</p>
+              </div>
+              <Label htmlFor="paymentProof">Unggah Bukti Pembayaran <span className="text-destructive">*</span></Label>
+              <Input 
+                id="paymentProof" 
+                type="file" 
+                accept="image/*,.pdf" 
+                onChange={(e) => setPaymentProof(e.target.files?.[0] || null)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Format: JPG, PNG, atau PDF (Max 2MB)</p>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
             Batal
           </Button>
-          <Button onClick={handleRegister} disabled={loading || !selectedTeam}>
+          <Button onClick={handleRegister} disabled={loading || !selectedTeam || (!isFree && !paymentProof)}>
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -35,6 +35,9 @@ export interface Team {
   id: string
   name: string
   logo_url: string | null
+  description: string | null
+  contact_email: string | null
+  whatsapp_number: string | null
   captain_id: string
   created_at: string
   updated_at: string
@@ -53,6 +56,7 @@ export interface TournamentRegistration {
   tournament_id: string
   team_id: string
   status: 'pending' | 'approved' | 'rejected' | 'withdrawn'
+  payment_proof_url: string | null
   registered_by: string
   registered_at: string
   updated_at: string

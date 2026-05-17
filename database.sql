@@ -110,3 +110,36 @@ CREATE POLICY "Team leaders can register." ON public.tournament_registrations FO
 CREATE POLICY "Admins can update registration status." ON public.tournament_registrations FOR UPDATE USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
 );
+
+-- Add new columns to teams table
+ALTER TABLE public.teams ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE public.teams ADD COLUMN IF NOT EXISTS contact_email TEXT;
+ALTER TABLE public.teams ADD COLUMN IF NOT EXISTS discord_link TEXT;
+
+-- Create storage bucket for team logos
+INSERT INTO storage.buckets (id, name, public) VALUES ('team_logos', 'team_logos', true) ON CONFLICT (id) DO NOTHING;
+
+-- Set up storage policies for team_logos
+CREATE POLICY "Team logos are publicly accessible." ON storage.objects FOR SELECT USING (bucket_id = 'team_logos');
+CREATE POLICY "Users can upload team logos." ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'team_logos' AND auth.role() = 'authenticated');
+CREATE POLICY "Users can update their team logos." ON storage.objects FOR UPDATE USING (bucket_id = 'team_logos' AND auth.role() = 'authenticated');
+
+
+ALTER TABLE public.teams ADD COLUMN IF NOT EXISTS whatsapp_number TEXT;
+
+
+-- Add new columns to profiles table
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone_number TEXT;
+
+-- Create storage bucket for avatars
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
+
+-- Set up storage policies for avatars
+CREATE POLICY "Avatars are publicly accessible." ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+CREATE POLICY "Users can upload their own avatar." ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+CREATE POLICY "Users can update their own avatar." ON storage.objects FOR UPDATE USING (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+
+
+ALTER TABLE public.profiles RENAME COLUMN phone_number TO phone;
+

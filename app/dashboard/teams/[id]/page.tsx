@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Users, Crown, User, Trophy, Calendar } from 'lucide-react'
+import { ArrowLeft, Users, Crown, User, Trophy, Calendar, Mail, Phone, Info } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { AddMemberDialog } from './add-member-dialog'
@@ -74,30 +74,70 @@ export default async function TeamDetailPage({
 
         <main className="flex-1 p-6">
           {/* Team Header */}
-          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border/60">
-            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center ring-2 ring-primary/20 shrink-0">
-              <span className="text-xl font-bold text-primary">{team.name[0].toUpperCase()}</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">{team.name}</h1>
-                {isCaptain && (
-                  <Badge className="gap-1.5 bg-amber-500/10 text-amber-600 border-amber-500/20" variant="outline">
-                    <Crown className="h-3 w-3" />
-                    Kapten
-                  </Badge>
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6 pb-6 border-b border-border/60">
+            <div className="flex items-center gap-5">
+              <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center ring-2 ring-primary/20 shrink-0 overflow-hidden">
+                {team.logo_url ? (
+                  <img src={team.logo_url} alt={team.name} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-3xl font-bold text-primary">{team.name[0].toUpperCase()}</span>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Dibuat {format(new Date(team.created_at), 'dd MMMM yyyy', { locale: id })} ·{' '}
-                {members?.length || 0} anggota
-              </p>
+              <div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-bold tracking-tight text-foreground">{team.name}</h1>
+                  {isCaptain && (
+                    <Badge className="gap-1.5 bg-amber-500/10 text-amber-600 border-amber-500/20" variant="outline">
+                      <Crown className="h-3.5 w-3.5" />
+                      Kapten
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-2">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Dibuat {format(new Date(team.created_at), 'dd MMM yyyy', { locale: id })}
+                  <span className="text-border/60">•</span>
+                  <Users className="h-3.5 w-3.5" />
+                  {members?.length || 0} anggota
+                </p>
+                
+                {(team.contact_email || team.whatsapp_number) && (
+                  <div className="flex items-center gap-4 mt-3">
+                    {team.contact_email && (
+                      <a href={`mailto:${team.contact_email}`} className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-secondary/50 px-2.5 py-1.5 rounded-md">
+                        <Mail className="h-3.5 w-3.5" />
+                        {team.contact_email}
+                      </a>
+                    )}
+                    {team.whatsapp_number && (
+                      <a href={`https://wa.me/${team.whatsapp_number.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-500 hover:bg-emerald-500/10 transition-colors bg-emerald-500/5 border border-emerald-500/20 px-2.5 py-1.5 rounded-md">
+                        <Phone className="h-3.5 w-3.5" />
+                        {team.whatsapp_number}
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Members */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-6">
+              {team.description && (
+                <Card className="border-border/60 bg-primary/5">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                      <Info className="h-4 w-4 text-primary" />
+                      Tentang Tim
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                      {team.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
               <Card className="border-border/60">
                 <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div>

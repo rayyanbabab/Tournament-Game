@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Users, Gamepad2, CheckCircle, XCircle, Clock, Crown, Calendar } from 'lucide-react'
+import { Users, Gamepad2, CheckCircle, XCircle, Clock, Crown, Calendar, Banknote } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { AdminSidebar } from '@/components/admin/sidebar'
@@ -51,6 +51,12 @@ export default async function AdminRegistrationsPage() {
               <Badge variant="outline" className="text-[10px] h-4 px-1.5">{reg.tournaments?.game}</Badge>
               <span className="text-xs text-muted-foreground truncate">{reg.tournaments?.name}</span>
             </div>
+            {reg.payment_proof_url && (
+              <a href={reg.payment_proof_url} target="_blank" rel="noreferrer" className="text-[10px] text-primary hover:underline mt-1 inline-flex items-center gap-1">
+                <Banknote className="h-3 w-3" />
+                Bukti Bayar
+              </a>
+            )}
           </div>
         </div>
 
@@ -91,11 +97,11 @@ export default async function AdminRegistrationsPage() {
       <AdminSidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
+        <header className="hidden md:flex sticky top-0 z-30 h-16 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
           <span className="text-sm font-medium text-foreground">Kelola Pendaftaran</span>
         </header>
 
-        <main className="flex-1 p-6 space-y-6">
+        <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6 pt-16 md:pt-4">
           <AdminPageHeader
             title="Kelola Pendaftaran"
             description="Setujui atau tolak pendaftaran tim ke turnamen"

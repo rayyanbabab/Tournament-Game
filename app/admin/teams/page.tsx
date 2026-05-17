@@ -28,11 +28,11 @@ export default async function AdminTeamsPage() {
       <AdminSidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
+        <header className="hidden md:flex sticky top-0 z-30 h-16 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
           <span className="text-sm font-medium text-foreground">Daftar Tim</span>
         </header>
 
-        <main className="flex-1 p-6 space-y-6">
+        <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6 pt-16 md:pt-4">
           <AdminPageHeader
             title="Daftar Tim"
             description="Semua tim yang terdaftar di platform GameArena"
@@ -62,13 +62,17 @@ export default async function AdminTeamsPage() {
 
                     {/* Team */}
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <span className="text-sm font-bold text-primary">{team.name[0].toUpperCase()}</span>
+                      <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden border border-border/50">
+                        {team.logo_url ? (
+                          <img src={team.logo_url} alt={team.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="text-sm font-bold text-primary">{team.name[0].toUpperCase()}</span>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-foreground truncate">{team.name}</p>
-                        {team.logo_url && (
-                          <p className="text-xs text-muted-foreground truncate">Logo tersedia</p>
+                        {team.contact_email && (
+                          <p className="text-xs text-muted-foreground truncate">{team.contact_email}</p>
                         )}
                       </div>
                     </div>

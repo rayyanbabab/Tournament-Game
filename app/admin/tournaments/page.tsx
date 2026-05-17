@@ -49,13 +49,13 @@ export default async function AdminTournamentsPage() {
       <AdminSidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 flex h-16 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
+        <header className="hidden md:flex sticky top-0 z-30 h-16 items-center border-b border-border/60 bg-background/80 backdrop-blur px-6">
           <nav className="text-sm text-muted-foreground">
             <span className="text-foreground font-medium">Kelola Turnamen</span>
           </nav>
         </header>
 
-        <main className="flex-1 p-6 space-y-6">
+        <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6 pt-16 md:pt-4">
           <AdminPageHeader
             title="Kelola Turnamen"
             description="Buat, edit, dan kelola semua turnamen game online"

@@ -68,6 +68,13 @@ export default async function TournamentDetailPage({
     .eq('tournament_id', tournamentId)
     .in('status', ['pending', 'approved'])
 
+  // Get approved teams for display
+  const { data: approvedRegistrations } = await supabase
+    .from('tournament_registrations')
+    .select('*, teams(id, name, logo_url)')
+    .eq('tournament_id', tournamentId)
+    .eq('status', 'approved')
+
   const statusColors: Record<string, string> = {
     upcoming: 'bg-primary/10 text-primary border-primary/20',
     registration_closed: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
@@ -186,6 +193,40 @@ export default async function TournamentDetailPage({
                   </CardContent>
                 </Card>
               )}
+
+              {/* Registered Teams */}
+              <Card className="border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Tim Terdaftar ({approvedRegistrations?.length || 0}/{tournament.max_teams})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {approvedRegistrations && approvedRegistrations.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {approvedRegistrations.map((reg: any) => (
+                        <div key={reg.id} className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg border border-border/50">
+                          <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                            {reg.teams?.logo_url ? (
+                              <img src={reg.teams.logo_url} alt={reg.teams.name} className="h-full w-full object-cover" />
+                            ) : (
+                              <span className="font-bold text-muted-foreground">{reg.teams?.name?.[0]?.toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{reg.teams?.name}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center p-6 bg-muted/30 rounded-lg border border-border/50">
+                      <p className="text-sm text-muted-foreground">Belum ada tim yang terdaftar dan disetujui.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
 
             {/* Sidebar */}
@@ -258,6 +299,7 @@ export default async function TournamentDetailPage({
                       tournamentId={tournament.id}
                       teams={userTeams}
                       teamSize={tournament.team_size}
+                      registrationFee={tournament.registration_fee}
                     />
                   )}
                 </CardContent>
