@@ -13,11 +13,11 @@ import {
   CheckCircle2,
   AlertCircle,
   Search,
-  Sun,
   MoreHorizontal,
   Loader,
   CircleCheck,
 } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { AdminSidebar } from '@/components/admin/sidebar'
@@ -140,9 +140,7 @@ export default async function AdminDashboardPage() {
             <Link href="/" className="hover:text-foreground transition-colors text-xs">Landing Page</Link>
             <Link href="/tournaments" className="hover:text-foreground transition-colors text-xs">Turnamen</Link>
             <Link href="https://github.com/rayyanbabab/Games" target="_blank" className="hover:text-foreground transition-colors text-xs">GitHub</Link>
-            <button className="flex h-7 w-7 items-center justify-center rounded-full border border-border/60 bg-background text-muted-foreground hover:text-foreground transition-colors ml-1">
-              <Sun className="h-3.5 w-3.5" />
-            </button>
+            <ThemeToggle size="sm" className="ml-1" />
           </div>
         </header>
 

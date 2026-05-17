@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent } from '@/components/ui/card'
-import { Users, Crown, Calendar } from 'lucide-react'
+import { Users, Crown, Calendar, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { AdminSidebar } from '@/components/admin/sidebar'
@@ -42,20 +43,22 @@ export default async function AdminTeamsPage() {
           {teams && teams.length > 0 ? (
             <div className="rounded-xl border border-border/60 overflow-hidden">
               {/* Header */}
-              <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 px-5 py-3 bg-muted/30 border-b border-border/60 text-xs font-semibold uppercase tracking-wider text-muted-foreground items-center">
+              <div className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-3 bg-muted/30 border-b border-border/60 text-xs font-semibold uppercase tracking-wider text-muted-foreground items-center">
                 <span className="w-10">#</span>
                 <span>Tim</span>
                 <span className="w-40 hidden md:block">Kapten</span>
                 <span className="w-20 text-center">Anggota</span>
                 <span className="w-28 text-center">Dibuat</span>
+                <span className="w-8"></span>
               </div>
 
               {/* Rows */}
               <div className="divide-y divide-border/60 bg-background">
                 {teams.map((team: any, index: number) => (
-                  <div
+                  <Link
                     key={team.id}
-                    className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 px-5 py-4 items-center hover:bg-muted/20 transition-colors"
+                    href={`/admin/teams/${team.id}`}
+                    className="grid grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 px-5 py-4 items-center hover:bg-muted/20 transition-colors group"
                   >
                     {/* Index */}
                     <div className="w-10 text-sm text-muted-foreground tabular-nums font-mono">{String(index + 1).padStart(2, '0')}</div>
@@ -70,7 +73,7 @@ export default async function AdminTeamsPage() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{team.name}</p>
+                        <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">{team.name}</p>
                         {team.contact_email && (
                           <p className="text-xs text-muted-foreground truncate">{team.contact_email}</p>
                         )}
@@ -98,7 +101,12 @@ export default async function AdminTeamsPage() {
                         {format(new Date(team.created_at), 'dd MMM yyyy', { locale: id })}
                       </div>
                     </div>
-                  </div>
+
+                    {/* Arrow */}
+                    <div className="w-8 flex justify-center">
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </div>

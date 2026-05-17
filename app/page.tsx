@@ -5,10 +5,11 @@ import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { FeaturedBanner } from '@/components/featured-banner'
 import {
   Trophy, Users, Calendar, ArrowRight, Gamepad2,
   Shield, Zap, Star, ChevronRight, CheckCircle,
-  Swords, Clock, Globe
+  Swords, Clock, Globe, Newspaper,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
@@ -35,13 +36,33 @@ export default async function HomePage() {
   const { count: totalUsers } = await supabase
     .from('profiles').select('*', { count: 'exact', head: true })
 
-  // Load dynamic site settings
+  // Load dynamic site settings first (needed for featured tournament id)
   const { data: settingsRows } = await supabase.from('site_settings').select('key, value')
   const s: Record<string, string> = {}
   settingsRows?.forEach(({ key, value }: { key: string; value: string }) => { s[key] = value })
 
   // Helper: get setting or fallback
   const gs = (key: string, fallback: string) => s[key] || fallback
+
+  // Load latest news
+  const { data: latestNews } = await supabase
+    .from('news_articles')
+    .select('id, title, slug, excerpt, cover_image_url, category, created_at')
+    .eq('published', true)
+    .order('created_at', { ascending: false })
+    .limit(3)
+
+  // Load featured tournament
+  const featuredId = s['featured_tournament_id']
+  let featuredTournament = null
+  if (featuredId) {
+    const { data: ft } = await supabase
+      .from('tournaments')
+      .select('*')
+      .eq('id', featuredId)
+      .single()
+    featuredTournament = ft ?? null
+  }
 
   const features = [
     {
@@ -81,6 +102,10 @@ export default async function HomePage() {
       <Navbar />
 
       <main className="flex-1">
+        {/* ─── FEATURED BANNER ─── */}
+        {featuredTournament && (
+          <FeaturedBanner tournament={featuredTournament} />
+        )}
 
         {/* ─── HERO SECTION ─── */}
         <section className="relative min-h-[calc(100vh-64px)] flex flex-col items-center justify-center overflow-hidden px-4 pb-0 pt-16">
@@ -387,6 +412,75 @@ export default async function HomePage() {
             )}
           </div>
         </section>
+
+        {/* ─── BERITA SECTION ─── */}
+        {latestNews && latestNews.length > 0 && (
+          <section className="py-20 border-t border-border/60">
+            <div className="container mx-auto px-4 max-w-6xl">
+              <div className="flex items-end justify-between mb-10">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Newspaper className="h-5 w-5 text-primary" />
+                    <span className="text-xs font-semibold text-primary uppercase tracking-widest">Berita Terbaru</span>
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Update dari GameArena</h2>
+                </div>
+                <Link href="/news" className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-primary hover:opacity-80 transition-opacity">
+                  Lihat semua <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {latestNews.map((article: any, idx: number) => (
+                  <Link key={article.id} href={`/news/${article.slug}`} className="group">
+                    <div className={`rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all h-full flex flex-col ${
+                      idx === 0 ? 'md:col-span-1' : ''
+                    }`}>
+                      <div className="h-44 overflow-hidden bg-muted">
+                        {article.cover_image_url ? (
+                          <img
+                            src={article.cover_image_url}
+                            alt={article.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                            <Newspaper className="h-12 w-12 text-primary/20" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-5 flex-1 flex flex-col">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+                            {article.category}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {format(new Date(article.created_at), 'dd MMM yyyy', { locale: idLocale })}
+                          </span>
+                        </div>
+                        <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2 flex-1">
+                          {article.title}
+                        </h3>
+                        {article.excerpt && (
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{article.excerpt}</p>
+                        )}
+                        <span className="flex items-center gap-1 text-xs font-semibold text-primary">
+                          Baca <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="flex justify-center mt-6 sm:hidden">
+                <Link href="/news" className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+                  Lihat semua berita <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ─── CTA SECTION ─── */}
         <section className="py-32 border-t border-border/60 relative overflow-hidden">

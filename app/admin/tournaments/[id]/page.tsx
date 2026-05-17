@@ -130,6 +130,12 @@ export default async function AdminTournamentDetailPage({
                         Edit
                       </Link>
                     </Button>
+                    <Button asChild variant="outline" size="sm" className="gap-2 border-primary/30 text-primary hover:bg-primary/10">
+                      <Link href={`/admin/tournaments/${tournament.id}/bracket`}>
+                        <Trophy className="h-4 w-4" />
+                        Bracket
+                      </Link>
+                    </Button>
                     <DeleteTournamentButton tournamentId={tournament.id} />
                   </div>
                 </div>

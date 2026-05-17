@@ -20,6 +20,8 @@ import {
   TrendingUp,
   Banknote,
   LayoutTemplate,
+  CreditCard,
+  Newspaper,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -32,6 +34,7 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetTitle,
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 
@@ -48,6 +51,7 @@ const sections = [
     items: [
       { href: '/admin/registrations', label: 'Pendaftaran', icon: ClipboardList },
       { href: '/admin/payments', label: 'Pembayaran', icon: Banknote },
+      { href: '/admin/payment-settings', label: 'Metode Bayar', icon: CreditCard },
       { href: '/admin/teams', label: 'Tim', icon: Users },
     ],
   },
@@ -55,6 +59,7 @@ const sections = [
     label: 'Halaman',
     items: [
       { href: '/', label: 'Landing Page', icon: Home },
+      { href: '/admin/news', label: 'Berita', icon: Newspaper },
       { href: '/admin/content', label: 'Edit Konten', icon: LayoutTemplate },
       { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
     ],
@@ -290,6 +295,7 @@ export function AdminSidebar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-[280px]">
+            <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
             <SidebarNav onClose={() => setMobileOpen(false)} />
           </SheetContent>
         </Sheet>

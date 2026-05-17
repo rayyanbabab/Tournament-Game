@@ -28,6 +28,7 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetTitle,
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import type { Profile } from '@/lib/types'
@@ -386,6 +387,7 @@ export function UserSidebar({ profile }: UserSidebarProps) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[280px]">
+              <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
               <SidebarNav profile={profile} onClose={() => setMobileOpen(false)} />
             </SheetContent>
           </Sheet>
