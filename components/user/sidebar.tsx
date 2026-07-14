@@ -171,7 +171,6 @@ function SidebarNav({ profile, onClose }: { profile?: Profile | null; onClose?: 
 
 export function UserSidebar({ profile }: UserSidebarProps) {
   const pathname = usePathname()
-  const supabase = createClient()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -181,8 +180,7 @@ export function UserSidebar({ profile }: UserSidebarProps) {
   }
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/'
+    await signOut({ callbackUrl: '/' })
   }
 
   return (

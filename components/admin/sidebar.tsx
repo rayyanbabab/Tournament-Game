@@ -148,7 +148,6 @@ function SidebarNav({ onClose }: { onClose?: () => void }) {
 
 export function AdminSidebar() {
   const pathname = usePathname()
-  const supabase = createClient()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -158,8 +157,7 @@ export function AdminSidebar() {
   }
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/'
+    await signOut({ callbackUrl: '/' })
   }
 
   return (
