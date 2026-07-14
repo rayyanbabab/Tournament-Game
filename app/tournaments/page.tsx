@@ -2,15 +2,19 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Trophy, Users, Calendar, Gamepad2, MapPin, Banknote } from 'lucide-react'
+import { Trophy, Users, Calendar, Gamepad2, MapPin, Banknote, Zap, Search } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import type { Tournament } from '@/lib/types'
 import { getTournamentStatus } from '@/lib/utils'
 import { TournamentFilters } from '@/components/tournament-filters'
+
+export const dynamic = 'force-dynamic'
+
+export const metadata = {
+  title: 'Daftar Turnamen – GameArena',
+  description: 'Temukan dan daftar turnamen gaming favoritmu',
+}
 
 export default async function TournamentsPage({
   searchParams,
@@ -22,7 +26,6 @@ export default async function TournamentsPage({
 
   try { await supabase.rpc('sync_tournament_statuses') } catch { }
 
-  // Fetch all for filter options
   const { data: allForFilters } = await supabase.from('tournaments').select('game, location')
   const games     = [...new Set(allForFilters?.map(t => t.game).filter(Boolean) ?? [])].sort()
   const locations = [...new Set(allForFilters?.map(t => t.location).filter(Boolean) ?? [])].sort()
@@ -43,114 +46,224 @@ export default async function TournamentsPage({
 
   const { data: tournaments } = await query
 
-  const statusColors: Record<string, string> = {
-    upcoming:             'bg-primary/10 text-primary border-primary/20',
-    registration_closed:  'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-    ongoing:              'bg-green-500/10 text-green-600 border-green-500/20',
-    completed:            'bg-muted text-muted-foreground border-border',
-    cancelled:            'bg-destructive/10 text-destructive border-destructive/20',
+  // Fetch approved registration counts for all fetched tournaments at once
+  const tournamentIds = (tournaments ?? []).map((t: any) => t.id)
+  const { data: regCounts } = tournamentIds.length > 0
+    ? await supabase
+        .from('tournament_registrations')
+        .select('tournament_id')
+        .in('tournament_id', tournamentIds)
+        .in('status', ['pending', 'approved'])
+    : { data: [] }
+
+  // Build a map: tournamentId → count
+  const countMap: Record<string, number> = {}
+  ;(regCounts ?? []).forEach((r: any) => {
+    countMap[r.tournament_id] = (countMap[r.tournament_id] ?? 0) + 1
+  })
+
+  const statusConfig: Record<string, { label: string; color: string; dot: string }> = {
+    upcoming:             { label: 'Pendaftaran Buka',  color: 'bg-blue-500/15 text-blue-500 border-blue-500/30',         dot: 'bg-blue-500' },
+    registration_closed:  { label: 'Slot Penuh',         color: 'bg-amber-500/15 text-amber-500 border-amber-500/30',       dot: 'bg-amber-500' },
+    ongoing:              { label: 'Berlangsung',        color: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30', dot: 'bg-emerald-400' },
+    completed:            { label: 'Selesai',            color: 'bg-muted text-muted-foreground border-border',             dot: 'bg-muted-foreground' },
+    cancelled:            { label: 'Dibatalkan',         color: 'bg-red-500/15 text-red-500 border-red-500/30',            dot: 'bg-red-500' },
   }
-  const statusLabels: Record<string, string> = {
-    upcoming: 'Pendaftaran Buka', registration_closed: 'Pendaftaran Tutup',
-    ongoing: 'Berlangsung', completed: 'Selesai', cancelled: 'Dibatalkan',
-  }
+
+  const isFiltered = !!(params.search || params.status || params.game || params.location || params.prize)
+
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
+
+      {/* ── Hero Banner ── */}
+      <div className="relative overflow-hidden border-b border-border/60 bg-gradient-to-br from-primary/10 via-background to-violet-500/5">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        <div className="absolute right-0 top-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="relative container mx-auto px-4 py-12 md:py-16">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
+                🎮 GameArena
+              </span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight mb-3">
+              Daftar Turnamen
+            </h1>
+            <p className="text-base text-muted-foreground max-w-md">
+              Temukan turnamen gaming favoritmu, daftarkan tim, dan buktikan kemampuanmu!
+            </p>
+
+            {/* Quick stats */}
+            <div className="flex items-center gap-6 mt-6 flex-wrap">
+              {[
+                { icon: Trophy, label: `${tournaments?.length ?? 0} Turnamen`, color: 'text-amber-500' },
+                { icon: Gamepad2, label: `${games.length} Game`, color: 'text-primary' },
+                { icon: Zap, label: 'Live Sekarang', color: 'text-emerald-500' },
+              ].map(({ icon: Icon, label, color }) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <Icon className={`h-3.5 w-3.5 ${color}`} />
+                  <span className="text-sm font-medium text-foreground">{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Daftar Turnamen</h1>
-            <p className="text-muted-foreground">Temukan dan daftar turnamen game favoritmu</p>
-          </div>
 
-          {/* Advanced Filters */}
+          {/* Filters */}
           <TournamentFilters games={games} locations={locations} />
+
+          {/* Result count */}
+          <div className="flex items-center justify-between mb-5">
+            <p className="text-sm text-muted-foreground">
+              {tournaments && tournaments.length > 0
+                ? <><span className="font-semibold text-foreground">{tournaments.length}</span> turnamen ditemukan</>
+                : 'Tidak ada hasil'}
+            </p>
+          </div>
 
           {/* Tournament Grid */}
           {tournaments && tournaments.length > 0 ? (
-            <>
-              <p className="text-xs text-muted-foreground mb-4">{tournaments.length} turnamen ditemukan</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {tournaments.map((tournament: Tournament) => (
-                  <Card key={tournament.id} className="border-border/50 overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all">
-                    {tournament.image_url ? (
-                      <div className="h-40 relative overflow-hidden bg-muted/30">
-                        <img src={tournament.image_url} alt={tournament.name} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {tournaments.map((tournament: Tournament) => {
+                const status = getTournamentStatus(tournament, countMap[tournament.id])
+                const cfg = statusConfig[status] ?? statusConfig.completed
+                const isOngoing = status === 'ongoing'
+                const isUpcoming = status === 'upcoming'
+
+                return (
+                  <Link
+                    key={tournament.id}
+                    href={`/tournaments/${tournament.id}`}
+                    className="group relative flex flex-col rounded-2xl border border-border/60 bg-card overflow-hidden hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
+                  >
+                    {/* Image / Placeholder */}
+                    <div className="relative h-44 overflow-hidden bg-gradient-to-br from-primary/20 via-violet-500/10 to-background shrink-0">
+                      {tournament.image_url ? (
+                        <img
+                          src={tournament.image_url}
+                          alt={tournament.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Gamepad2 className="h-16 w-16 text-primary/20" />
+                        </div>
+                      )}
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+
+                      {/* Status badge on image */}
+                      <div className="absolute top-3 left-3">
+                        <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border backdrop-blur-sm ${cfg.color}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot} ${isOngoing ? 'animate-pulse' : ''}`} />
+                          {cfg.label}
+                        </span>
                       </div>
-                    ) : (
-                      <div className="h-40 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                        <Gamepad2 className="h-16 w-16 text-primary/30" />
+
+                      {/* Prize badge on image */}
+                      {tournament.prize_pool && (
+                        <div className="absolute top-3 right-3">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-500/90 text-white backdrop-blur-sm border border-amber-400/30">
+                            <Trophy className="h-3 w-3" />
+                            {tournament.prize_pool}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex flex-col flex-1 p-4 gap-3">
+                      {/* Game tag */}
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md w-fit">
+                        {tournament.game}
+                      </span>
+
+                      {/* Title */}
+                      <div>
+                        <h2 className="text-base font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                          {tournament.name}
+                        </h2>
+                        {tournament.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                            {tournament.description}
+                          </p>
+                        )}
                       </div>
-                    )}
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
-                        <Badge variant="secondary">{tournament.game}</Badge>
-                        <Badge className={statusColors[getTournamentStatus(tournament)]}>
-                          {statusLabels[getTournamentStatus(tournament)]}
-                        </Badge>
-                      </div>
-                      <CardTitle className="line-clamp-1">{tournament.name}</CardTitle>
-                      <CardDescription className="line-clamp-2">
-                        {tournament.description || 'Turnamen seru dengan hadiah menarik!'}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                      <div className="space-y-1.5 text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar className="h-4 w-4 shrink-0" />
+
+                      {/* Meta info */}
+                      <div className="space-y-1.5 mt-auto">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Calendar className="h-3.5 w-3.5 shrink-0 text-primary/60" />
                           <span>{format(new Date(tournament.start_date), 'dd MMMM yyyy', { locale: id })}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Users className="h-4 w-4 shrink-0" />
-                          <span>Max {tournament.max_teams} tim ({tournament.team_size} pemain/tim)</span>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Users className="h-3.5 w-3.5 shrink-0 text-primary/60" />
+                          <span>Max {tournament.max_teams} tim · {tournament.team_size} pemain/tim</span>
                         </div>
                         {tournament.location && (
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="h-4 w-4 shrink-0" />
-                            <span>{tournament.location}</span>
-                          </div>
-                        )}
-                        {tournament.prize_pool && (
-                          <div className="flex items-center gap-2 text-primary font-medium">
-                            <Trophy className="h-4 w-4 shrink-0" />
-                            <span>{tournament.prize_pool}</span>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5 shrink-0 text-primary/60" />
+                            <span className="truncate">{tournament.location}</span>
                           </div>
                         )}
                         {tournament.registration_fee && (
-                          <div className="flex items-center gap-2 text-emerald-600">
-                            <Banknote className="h-4 w-4 shrink-0" />
-                            <span>{tournament.registration_fee}</span>
+                          <div className="flex items-center gap-2 text-xs text-emerald-600 font-medium">
+                            <Banknote className="h-3.5 w-3.5 shrink-0" />
+                            <span>Biaya: {tournament.registration_fee}</span>
                           </div>
                         )}
                       </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button asChild className="w-full">
-                        <Link href={`/tournaments/${tournament.id}`}>Lihat Detail</Link>
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </>
+
+                      {/* CTA */}
+                      <div className={`mt-1 w-full text-center text-sm font-semibold py-2.5 rounded-xl transition-all
+                        ${isUpcoming
+                          ? 'bg-primary text-primary-foreground group-hover:bg-primary/90 shadow-sm shadow-primary/20'
+                          : isOngoing
+                          ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 group-hover:bg-emerald-500/20'
+                          : 'bg-muted text-muted-foreground'
+                        }`}>
+                        {isUpcoming ? 'Daftar Sekarang →' : isOngoing ? 'Sedang Berlangsung' : 'Lihat Detail →'}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
           ) : (
-            <Card className="border-border/50">
-              <CardContent className="py-16 text-center">
-                <Gamepad2 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">Tidak Ada Turnamen</h3>
-                <p className="text-muted-foreground">
-                  {params.search || params.status || params.game || params.location || params.prize
-                    ? 'Tidak ada turnamen yang sesuai dengan filter Anda.'
-                    : 'Belum ada turnamen yang tersedia saat ini.'}
+            /* Empty state */
+            <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
+              <div className="h-20 w-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Search className="h-10 w-10 text-primary/30" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-foreground">
+                  {isFiltered ? 'Tidak Ada Hasil' : 'Belum Ada Turnamen'}
                 </p>
-              </CardContent>
-            </Card>
+                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                  {isFiltered
+                    ? 'Coba ubah atau hapus filter untuk melihat lebih banyak turnamen.'
+                    : 'Admin belum menambahkan turnamen. Cek lagi nanti!'}
+                </p>
+              </div>
+              {isFiltered && (
+                <Link
+                  href="/tournaments"
+                  className="text-sm text-primary font-semibold hover:underline"
+                >
+                  Hapus semua filter
+                </Link>
+              )}
+            </div>
           )}
         </div>
       </main>
+
       <Footer />
     </div>
   )

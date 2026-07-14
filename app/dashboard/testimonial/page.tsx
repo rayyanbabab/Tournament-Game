@@ -1,11 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { UserSidebar } from '@/components/user/sidebar'
 import { TestimonialForm } from './testimonial-form'
 import {
   Star, MessageSquare, CheckCircle2, Clock, ChevronRight, Info,
 } from 'lucide-react'
-import { ThemeToggle } from '@/components/theme-toggle'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
@@ -27,22 +25,8 @@ export default async function TestimonialPage() {
     .single()
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <UserSidebar profile={profile} />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Bar */}
-        <header className="hidden md:flex sticky top-0 z-30 h-14 items-center justify-between border-b border-border/60 bg-background/95 backdrop-blur-sm px-6 shrink-0">
-          <div className="flex items-center gap-2 text-sm">
-            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
-            <span className="text-foreground font-medium">Ulasan Saya</span>
-          </div>
-          <ThemeToggle size="sm" />
-        </header>
-
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto pt-16 md:pt-6">
-          <div className="max-w-2xl mx-auto space-y-6">
+    <main className="flex-1 p-4 md:p-6 overflow-y-auto pt-16 md:pt-6">
+      <div className="max-w-2xl mx-auto space-y-6">
 
             {/* Page Header */}
             <div className="flex items-center gap-3">
@@ -119,9 +103,7 @@ export default async function TestimonialPage() {
               } : null} />
             </div>
 
-          </div>
-        </main>
       </div>
-    </div>
+    </main>
   )
 }

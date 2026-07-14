@@ -5,13 +5,11 @@ import { Button } from '@/components/ui/button'
 import {
   Trophy, Users, Plus, ArrowRight, Gamepad2,
   Target, CircleCheck, Loader, AlertCircle,
-  MoreHorizontal, Star, Swords, Search, Bell,
+  MoreHorizontal, Star, Swords,
   ChevronRight, Flame,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { UserSidebar } from '@/components/user/sidebar'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -76,40 +74,7 @@ export default async function DashboardPage() {
   const firstName = profile?.full_name?.split(' ')[0] || 'Gamer'
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <UserSidebar profile={profile} />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-
-        {/* ── TOP BAR ── */}
-        <header className="hidden md:flex sticky top-0 z-30 h-14 items-center justify-between border-b border-border/60 bg-background/95 backdrop-blur-sm px-6 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 h-8 px-3 rounded-lg border border-border/60 bg-muted/30 text-sm text-muted-foreground w-60 cursor-pointer hover:border-border transition-colors">
-              <Search className="h-3.5 w-3.5 shrink-0" />
-              <span className="text-xs flex-1">Cari turnamen...</span>
-              <kbd className="text-[10px] border border-border/60 rounded px-1.5 py-0.5 bg-background font-mono">⌘K</kbd>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {pendingCount > 0 && (
-              <div className="flex items-center gap-1.5 text-xs font-medium text-amber-600 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg">
-                <Bell className="h-3.5 w-3.5" />
-                {pendingCount} pendaftaran pending
-              </div>
-            )}
-            <Link href="/tournaments" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Turnamen</Link>
-            <ThemeToggle size="sm" />
-            <div className="h-7 w-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
-              {(profile as any)?.avatar_url ? (
-                <img src={(profile as any).avatar_url} alt="avatar" className="h-full w-full object-cover rounded-full" />
-              ) : (
-                <span className="text-xs font-bold text-primary">{firstName[0]?.toUpperCase()}</span>
-              )}
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto pt-16 md:pt-6">
+    <main className="flex-1 p-4 md:p-6 space-y-6 pt-16 md:pt-6">
 
           {/* ── WELCOME BANNER ── */}
           <div className="relative rounded-2xl overflow-hidden border border-primary/20 bg-gradient-to-br from-primary/10 via-violet-500/5 to-card p-6 md:p-8">
@@ -368,8 +333,6 @@ export default async function DashboardPage() {
               )}
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </main>
   )
 }

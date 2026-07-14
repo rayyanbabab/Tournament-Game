@@ -60,9 +60,13 @@ export default async function AdminTournamentDetailPage({
 
   const approvedCount = registrations?.filter(r => r.status === 'approved').length || 0
   const pendingCount  = registrations?.filter(r => r.status === 'pending').length  || 0
-  const currentStatus = getTournamentStatus(tournament)
+  const currentStatus = getTournamentStatus(tournament, approvedCount)
   const statusCfg = statusConfig[currentStatus] ?? statusConfig.upcoming
   const fillPct = tournament.max_teams > 0 ? Math.round((approvedCount / tournament.max_teams) * 100) : 0
+  // Strip internal ---CONFIG:{...} from rules before display
+  const displayRules = tournament.rules
+    ? tournament.rules.replace(/\n*---CONFIG:\{[^}]*\}/g, '').trim()
+    : ''
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -248,13 +252,13 @@ export default async function AdminTournamentDetailPage({
 
 
               {/* Rules */}
-              {tournament.rules && (
+              {displayRules && (
                 <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-3">
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     Peraturan
                   </h3>
-                  <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">{tournament.rules}</p>
+                  <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">{displayRules}</p>
                 </div>
               )}
 

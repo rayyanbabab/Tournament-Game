@@ -16,6 +16,7 @@ import {
   PanelLeft,
   Star,
   Menu,
+  Award,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -39,6 +40,7 @@ const sections = [
     items: [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
       { href: '/tournaments', label: 'Turnamen', icon: Trophy },
+      { href: '/dashboard/certificates', label: 'Sertifikat Saya', icon: Award },
       { href: '/dashboard/testimonial', label: 'Ulasan Saya', icon: Star },
     ],
   },

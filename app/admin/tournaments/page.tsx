@@ -9,6 +9,8 @@ import { AdminSidebar } from '@/components/admin/sidebar'
 import { getTournamentStatus } from '@/lib/utils'
 import { ThemeToggle } from '@/components/theme-toggle'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminTournamentsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -35,7 +37,15 @@ export default async function AdminTournamentsPage() {
     cancelled:            { label: 'Dibatalkan',         color: 'bg-red-500/10 text-red-600 border-red-500/20',        dot: 'bg-red-500' },
   }
 
-  const totalActive = tournaments?.filter(t => ['upcoming','ongoing'].includes(getTournamentStatus(t))).length || 0
+  // Build a quick count map for totalActive calculation
+  const countMap: Record<string, number> = {}
+  ;(tournaments ?? []).forEach((t: any) => {
+    countMap[t.id] = t.tournament_registrations?.[0]?.count || 0
+  })
+
+  const totalActive = tournaments?.filter(t =>
+    ['upcoming', 'ongoing'].includes(getTournamentStatus(t, countMap[t.id]))
+  ).length || 0
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -86,9 +96,9 @@ export default async function AdminTournamentsPage() {
 
               <div className="divide-y divide-border/40">
                 {tournaments.map((tournament: any) => {
-                  const status = getTournamentStatus(tournament)
-                  const config = statusConfig[status] ?? statusConfig.completed
                   const regCount = tournament.tournament_registrations?.[0]?.count || 0
+                  const status = getTournamentStatus(tournament, regCount)
+                  const config = statusConfig[status] ?? statusConfig.completed
                   const fillPct = tournament.max_teams > 0
                     ? Math.round((regCount / tournament.max_teams) * 100)
                     : 0

@@ -5,7 +5,7 @@ import { AdminSidebar } from '@/components/admin/sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { BracketView } from '@/components/bracket/bracket-view'
 import { GenerateBracketButton } from './generate-button'
-import { ChevronRight, Trophy, Users, Shuffle, ExternalLink } from 'lucide-react'
+import { ChevronRight, Trophy, Users, Shuffle, ExternalLink, CalendarDays, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default async function AdminBracketPage({
@@ -99,6 +99,20 @@ export default async function AdminBracketPage({
             <GenerateBracketButton tournamentId={tournamentId} hasBracket={hasBracket} approvedCount={approvedTeams.length} />
           </div>
 
+          {/* Info banner — redirect to schedule for score input */}
+          <div className="flex items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-3">
+            <Info className="h-4 w-4 text-blue-500 shrink-0" />
+            <p className="text-sm text-blue-600 flex-1">
+              Halaman ini hanya untuk melihat bracket. Input skor & hasil dilakukan di halaman
+              <span className="font-semibold"> Jadwal &amp; Hasil Pertandingan</span>.
+            </p>
+            <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 text-xs border-blue-500/30 text-blue-600 hover:bg-blue-500/10 shrink-0">
+              <Link href={`/admin/tournaments/${tournamentId}/schedule`}>
+                <CalendarDays className="h-3.5 w-3.5" /> Jadwal &amp; Hasil
+              </Link>
+            </Button>
+          </div>
+
           <div className="grid grid-cols-3 gap-3">
             {[
               { label: 'Tim Disetujui',      value: approvedTeams.length, accent: 'border-l-primary' },
@@ -122,7 +136,7 @@ export default async function AdminBracketPage({
                 </span>
               )}
             </div>
-            <BracketView matches={matches} isAdmin tournamentId={tournamentId} />
+            <BracketView matches={matches} isAdmin={false} tournamentId={tournamentId} />
           </div>
 
           {approvedTeams.length > 0 && (

@@ -1,8 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { UserSidebar } from '@/components/user/sidebar'
 import { ProfileForm } from '@/components/profile-form'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { Settings, User } from 'lucide-react'
 
 export default async function UserSettingsPage() {
@@ -15,22 +13,8 @@ export default async function UserSettingsPage() {
     .from('profiles').select('*').eq('id', user.id).single()
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <UserSidebar profile={profile} />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Bar */}
-        <header className="hidden md:flex sticky top-0 z-30 h-14 items-center justify-between border-b border-border/60 bg-background/95 backdrop-blur-sm px-6 shrink-0">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Dashboard</span>
-            <span className="text-muted-foreground/40">/</span>
-            <span className="text-foreground font-medium">Pengaturan Profil</span>
-          </div>
-          <ThemeToggle size="sm" />
-        </header>
-
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto pt-16 md:pt-6">
-          <div className="max-w-2xl mx-auto space-y-6">
+    <main className="flex-1 p-4 md:p-6 overflow-y-auto pt-16 md:pt-6">
+      <div className="max-w-2xl mx-auto space-y-6">
 
             {/* Page Header */}
             <div className="flex items-center gap-3">
@@ -74,9 +58,7 @@ export default async function UserSettingsPage() {
             <div className="rounded-2xl border border-border/60 bg-card p-6">
               <ProfileForm initialProfile={profile} />
             </div>
-          </div>
-        </main>
       </div>
-    </div>
+    </main>
   )
 }

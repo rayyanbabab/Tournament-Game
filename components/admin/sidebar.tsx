@@ -24,6 +24,7 @@ import {
   Newspaper,
   Shuffle,
   BarChart2,
+  Award,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -56,7 +57,9 @@ const sections = [
       { href: '/admin/registrations', label: 'Pendaftaran', icon: ClipboardList },
       { href: '/admin/payments', label: 'Pembayaran', icon: Banknote },
       { href: '/admin/payment-settings', label: 'Metode Bayar', icon: CreditCard },
+      { href: '/admin/certificates', label: 'Sertifikat', icon: Award },
       { href: '/admin/teams', label: 'Tim', icon: Users },
+      { href: '/admin/game-categories', label: 'Kategori Game', icon: Gamepad2 },
       { href: '/admin/testimonials', label: 'Ulasan', icon: Star },
     ],
   },

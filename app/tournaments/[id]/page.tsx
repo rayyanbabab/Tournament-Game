@@ -14,6 +14,8 @@ import { id } from 'date-fns/locale'
 import { RegisterTournamentButton } from './register-button'
 import { getTournamentStatus } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+
 export default async function TournamentDetailPage({
   params,
 }: {
@@ -63,20 +65,27 @@ export default async function TournamentDetailPage({
     .order('round', { ascending: true })
     .order('match_number', { ascending: true })
 
+  const slotsUsed = registrationCount ?? 0
+  const slotFull = slotsUsed >= tournament.max_teams
+
   const statusConfig: Record<string, { label: string; color: string; dot: string; bg: string }> = {
-    upcoming:             { label: 'Pendaftaran Dibuka',   color: 'text-blue-600',    dot: 'bg-blue-500',    bg: 'bg-blue-500/10 border-blue-500/20' },
-    registration_closed:  { label: 'Pendaftaran Ditutup',  color: 'text-amber-600',   dot: 'bg-amber-500',   bg: 'bg-amber-500/10 border-amber-500/20' },
+    upcoming:             { label: slotFull ? 'Slot Penuh' : 'Pendaftaran Dibuka', color: slotFull ? 'text-amber-600' : 'text-blue-600', dot: slotFull ? 'bg-amber-500' : 'bg-blue-500', bg: slotFull ? 'bg-amber-500/10 border-amber-500/20' : 'bg-blue-500/10 border-blue-500/20' },
+    registration_closed:  { label: slotFull ? 'Slot Penuh' : 'Pendaftaran Ditutup', color: 'text-amber-600',   dot: 'bg-amber-500',   bg: 'bg-amber-500/10 border-amber-500/20' },
     ongoing:              { label: 'Sedang Berlangsung',   color: 'text-emerald-600', dot: 'bg-emerald-500', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-    completed:            { label: 'Selesai',              color: 'text-muted-foreground', dot: 'bg-muted-foreground', bg: 'bg-muted border-border' },
+    completed:            { label: 'Turnamen Selesai',     color: 'text-muted-foreground', dot: 'bg-muted-foreground', bg: 'bg-muted border-border' },
     cancelled:            { label: 'Dibatalkan',           color: 'text-red-600',     dot: 'bg-red-500',     bg: 'bg-red-500/10 border-red-500/20' },
   }
 
-  const currentStatus = getTournamentStatus(tournament)
-  const scfg = statusConfig[currentStatus] ?? statusConfig.upcoming
-  const isRegistrationOpen = currentStatus === 'upcoming'
-  const slotsUsed = registrationCount ?? 0
   const slotsRemaining = tournament.max_teams - slotsUsed
   const fillPct = tournament.max_teams > 0 ? Math.round((slotsUsed / tournament.max_teams) * 100) : 0
+
+  const currentStatus = getTournamentStatus(tournament, slotsUsed)
+  const scfg = statusConfig[currentStatus] ?? statusConfig.upcoming
+  const isRegistrationOpen = currentStatus === 'upcoming'
+  // Strip internal ---CONFIG:{...} before showing rules publicly
+  const displayRules = tournament.rules
+    ? tournament.rules.replace(/\n*---CONFIG:\{[^}]*\}/g, '').trim()
+    : ''
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -182,13 +191,13 @@ export default async function TournamentDetailPage({
               </div>
 
               {/* Rules */}
-              {tournament.rules && (
+              {displayRules && (
                 <div className="rounded-2xl border border-border/60 bg-card p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     <h2 className="text-sm font-semibold text-foreground">Peraturan Turnamen</h2>
                   </div>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{tournament.rules}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{displayRules}</p>
                 </div>
               )}
 

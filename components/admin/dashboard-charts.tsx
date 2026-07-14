@@ -134,25 +134,25 @@ export function AdminAreaChart({ registrations }: VisitorsChartProps) {
             <defs>
               {/* Primary gradient — works in both dark/light */}
               <linearGradient id="gradPrimary" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
+                <stop offset="0%"   stopColor="var(--primary)" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="hsl(var(--border))"
+              stroke="var(--border)"
               opacity={0.5}
               vertical={false}
             />
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
               tickLine={false}
               axisLine={false}
               interval={period === '90d' ? 8 : period === '30d' ? 4 : 0}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
               tickLine={false}
               axisLine={false}
               allowDecimals={false}
@@ -162,11 +162,11 @@ export function AdminAreaChart({ registrations }: VisitorsChartProps) {
               type="monotone"
               dataKey="registrations"
               name="Pendaftaran"
-              stroke="hsl(var(--primary))"
+              stroke="var(--primary)"
               strokeWidth={2}
               fill="url(#gradPrimary)"
               dot={false}
-              activeDot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 0 }}
+              activeDot={{ r: 4, fill: 'var(--primary)', strokeWidth: 0 }}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -228,18 +228,18 @@ export function RegistrationStatusChart({ data }: { data: { name: string; value:
           <BarChart data={data} margin={{ top: 4, right: 16, left: -20, bottom: 0 }}>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="hsl(var(--border))"
+              stroke="var(--border)"
               opacity={0.5}
               vertical={false}
             />
             <XAxis
               dataKey="name"
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
               tickLine={false}
               axisLine={false}
               allowDecimals={false}
@@ -249,7 +249,7 @@ export function RegistrationStatusChart({ data }: { data: { name: string; value:
               {data.map((entry, i) => (
                 <Cell
                   key={i}
-                  fill={colorMap[entry.name]?.bar ?? 'hsl(var(--primary))'}
+                  fill={colorMap[entry.name]?.bar ?? 'var(--primary)'}
                   opacity={0.85}
                 />
               ))}
