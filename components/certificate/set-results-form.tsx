@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+// Supabase client migrated to Neon - see /api routes
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Trophy, Loader2, Save, RotateCcw } from 'lucide-react'
@@ -25,7 +25,7 @@ const RANKS = [
 ]
 
 export function SetResultsForm({ tournamentId, teams, existingResults, onSaved }: Props) {
-  const supabase = createClient()
+  // const supabase = createClient() // migrated
   const [saving, setSaving] = useState(false)
 
   // Build initial map: rank -> team_id

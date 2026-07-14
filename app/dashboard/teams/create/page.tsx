@@ -3,14 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { ArrowLeft, Loader2, Users, Upload, Image as ImageIcon, Phone, Mail, Info } from 'lucide-react'
+import { ArrowLeft, Loader2, Users, Image as ImageIcon, Phone, Mail, Info } from 'lucide-react'
 import { UserSidebar } from '@/components/user/sidebar'
 
 export default function CreateTeamPage() {
@@ -18,11 +18,10 @@ export default function CreateTeamPage() {
   const [description, setDescription] = useState('')
   const [contactEmail, setContactEmail] = useState('')
   const [whatsappNumber, setWhatsappNumber] = useState('')
-  const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  const { data: session } = useSession()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -41,74 +40,32 @@ export default function CreateTeamPage() {
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
+      if (!session?.user) {
         toast.error('Silakan login terlebih dahulu')
         router.push('/auth/login')
         return
       }
 
-      // 1. Upload logo if provided
-      let logoUrl = null
-      if (logoFile) {
-        const fileExt = logoFile.name.split('.').pop()
-        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
-        
-        const { error: uploadError } = await supabase.storage
-          .from('team_logos')
-          .upload(fileName, logoFile)
-
-        if (uploadError) {
-          toast.error('Gagal mengunggah logo tim. Pastikan ukuran file tidak terlalu besar.')
-          setLoading(false)
-          return
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('team_logos')
-          .getPublicUrl(fileName)
-          
-        logoUrl = publicUrl
-      }
-
-      // 2. Create team
-      const { data: team, error: teamError } = await supabase
-        .from('teams')
-        .insert({
+      const res = await fetch('/api/teams/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name,
           description: description || null,
-          contact_email: contactEmail || null,
-          whatsapp_number: whatsappNumber || null,
-          logo_url: logoUrl,
-          captain_id: user.id,
-        })
-        .select()
-        .single()
+          contactEmail: contactEmail || null,
+          whatsappNumber: whatsappNumber || null,
+        }),
+      })
 
-      if (teamError) {
-        console.error(teamError)
-        toast.error('Gagal membuat tim. Mungkin kolom database belum diperbarui.')
-        setLoading(false)
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error || 'Gagal membuat tim')
         return
       }
 
-      // 3. Add captain as team member
-      const { error: memberError } = await supabase
-        .from('team_members')
-        .insert({
-          team_id: team.id,
-          user_id: user.id,
-          role: 'captain',
-        })
-
-      if (memberError) {
-        toast.error('Tim dibuat tapi gagal menambahkan Anda sebagai kapten.')
-      } else {
-        toast.success('Tim berhasil dibuat!')
-      }
-      
-      router.push(`/dashboard/teams/${team.id}`)
+      toast.success('Tim berhasil dibuat!')
+      router.push(`/dashboard/teams/${data.teamId}`)
     } catch (err) {
       console.error(err)
       toast.error('Terjadi kesalahan yang tidak terduga saat membuat tim.')

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -28,24 +27,21 @@ const statusOptions = [
 export function UpdateStatusButton({ tournamentId, currentStatus }: UpdateStatusButtonProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleUpdateStatus = async (newStatus: string) => {
     if (newStatus === currentStatus) return
-
     setLoading(true)
-
     try {
-      const { error } = await supabase
-        .from('tournaments')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq('id', tournamentId)
-
-      if (error) {
-        toast.error(error.message)
+      const res = await fetch('/api/admin/tournament-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tournamentId, status: newStatus }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        toast.error(d.error || 'Terjadi kesalahan')
         return
       }
-
       toast.success('Status turnamen berhasil diperbarui')
       router.refresh()
     } catch {

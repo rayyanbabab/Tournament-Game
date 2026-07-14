@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/sonner'
 import { ThemeProvider } from '@/components/theme-provider'
+import { SessionProvider } from 'next-auth/react'
 import './globals.css'
 
 const geistSans = Geist({ 
@@ -45,16 +46,18 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased bg-background" suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange={false}
-        >
-          {children}
-          <Toaster position="top-right" richColors />
-          {process.env.NODE_ENV === 'production' && <Analytics />}
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange={false}
+          >
+            {children}
+            <Toaster position="top-right" richColors />
+            {process.env.NODE_ENV === 'production' && <Analytics />}
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+// Supabase client migrated to Neon - see /api routes
 import { Flame, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react'
 
 interface Tournament {
@@ -21,7 +21,7 @@ export function FeaturedTournamentPicker({ tournaments, currentFeaturedId }: Pro
   const [selected, setSelected] = useState<string | null>(currentFeaturedId)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
-  const supabase = createClient()
+  // const supabase = createClient() // migrated
 
   const showToast = (type: 'success' | 'error', msg: string) => {
     setToast({ type, msg })

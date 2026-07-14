@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createClient } from '@/lib/supabase/client'
+// Supabase client migrated to Neon - see /api routes
 import {
   Plus, Trash2, Save, Upload, Loader2, CheckCircle2,
   AlertCircle, Building2, QrCode, FileText, X,
@@ -24,7 +24,7 @@ interface Props {
 }
 
 export function PaymentSettingsEditor({ initial }: Props) {
-  const supabase = createClient()
+  // const supabase = createClient() // migrated
   const qrisInputRef = useRef<HTMLInputElement>(null)
 
   const [banks, setBanks] = useState<BankAccount[]>(initial.bank_accounts ?? [])

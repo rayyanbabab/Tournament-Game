@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { Loader2, Upload, User, Phone, Mail, Camera } from 'lucide-react'
+import { Loader2, User, Phone, Mail, Camera } from 'lucide-react'
 import type { Profile } from '@/lib/types'
 
 interface ProfileFormProps {
@@ -17,11 +16,8 @@ interface ProfileFormProps {
 export function ProfileForm({ initialProfile }: ProfileFormProps) {
   const [fullName, setFullName] = useState(initialProfile.full_name || '')
   const [phone, setPhone] = useState(initialProfile.phone || '')
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialProfile.avatar_url)
   const [loading, setLoading] = useState(false)
-  
-  const supabase = createClient()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -30,8 +26,8 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
         toast.error('Ukuran file maksimal 2MB')
         return
       }
-      setAvatarFile(file)
       setAvatarPreview(URL.createObjectURL(file))
+      toast.info('Upload foto profil belum tersedia. Gunakan URL eksternal.')
     }
   }
 
@@ -40,46 +36,22 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
     setLoading(true)
 
     try {
-      let avatarUrl = initialProfile.avatar_url
-
-      if (avatarFile) {
-        const fileExt = avatarFile.name.split('.').pop()
-        const fileName = `${initialProfile.id}_${Date.now()}.${fileExt}`
-        
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(fileName, avatarFile, { upsert: true })
-
-        if (uploadError) {
-          console.error("Upload error details:", uploadError);
-          toast.error(`Gagal mengunggah foto: ${uploadError.message}. Pastikan Anda sudah menjalankan script SQL untuk membuat bucket 'avatars'.`)
-          setLoading(false)
-          return
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(fileName)
-          
-        avatarUrl = publicUrl
-      }
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
+      const res = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           full_name: fullName,
-          phone: phone,
-          avatar_url: avatarUrl,
-        })
-        .eq('id', initialProfile.id)
+          phone,
+        }),
+      })
 
-      if (updateError) {
-        throw updateError
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal memperbarui profil')
       }
 
       toast.success('Profil berhasil diperbarui!')
-      
-      // Refresh to update sidebar info
       window.location.reload()
     } catch (err: any) {
       console.error(err)
@@ -111,11 +83,11 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
               <Camera className="h-4 w-4" />
               <span className="sr-only">Upload Avatar</span>
             </label>
-            <input 
-              id="avatar-upload" 
-              type="file" 
-              accept="image/*" 
-              className="hidden" 
+            <input
+              id="avatar-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
               onChange={handleFileChange}
               disabled={loading}
             />

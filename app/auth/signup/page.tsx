@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,7 +16,6 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const passwordStrength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : 3
 
@@ -26,26 +24,21 @@ export default function SignUpPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ??
-            `${window.location.origin}/auth/callback`,
-          data: {
-            full_name: fullName,
-            role: 'user',
-          },
-        },
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, full_name: fullName }),
       })
 
-      if (error) {
-        toast.error(error.message)
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error || 'Gagal membuat akun')
         return
       }
 
-      toast.success('Pendaftaran berhasil! Silakan cek email Anda.')
-      router.push('/auth/signup-success')
+      toast.success('Akun berhasil dibuat! Silakan login.')
+      router.push('/auth/login')
     } catch {
       toast.error('Terjadi kesalahan saat mendaftar')
     } finally {

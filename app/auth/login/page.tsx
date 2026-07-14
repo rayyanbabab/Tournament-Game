@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,30 +16,30 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password })
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
 
-      if (error) {
-        toast.error(error.message)
+      if (result?.error) {
+        toast.error('Email atau password salah')
         return
       }
 
-      // Check role to redirect correctly
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single()
-
       toast.success('Login berhasil!')
 
-      if (profile?.role === 'admin') {
+      // Fetch session to check role
+      const res = await fetch('/api/auth/session')
+      const session = await res.json()
+
+      if (session?.user?.role === 'admin') {
         router.push('/admin')
       } else {
         router.push('/')

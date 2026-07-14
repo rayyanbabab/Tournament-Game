@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
@@ -46,7 +46,7 @@ export function RegisterTournamentButton({ tournamentId, teamSize, registrationF
   const [loading, setLoading] = useState(false)
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null)
   const router = useRouter()
-  const supabase = createClient()
+  const { data: session } = useSession()
 
   const totalSteps = isFree ? 1 : 3
   const stepLabels = isFree
@@ -90,54 +90,25 @@ export function RegisterTournamentButton({ tournamentId, teamSize, registrationF
     if (!isFree && !paymentProof) { toast.error('Upload bukti pembayaran terlebih dahulu'); return }
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { toast.error('Silakan login terlebih dahulu'); return }
+      if (!session?.user) { toast.error('Silakan login terlebih dahulu'); return }
 
-      let paymentProofUrl: string | null = null
-      if (!isFree && paymentProof) {
-        const ext = paymentProof.name.split('.').pop()
-        const path = `${user.id}/${Date.now()}.${ext}`
-        const { error: upErr } = await supabase.storage
-          .from('payment_proofs').upload(path, paymentProof, { cacheControl: '3600', upsert: false })
-        if (upErr) throw new Error('Gagal upload bukti: ' + upErr.message)
-        paymentProofUrl = supabase.storage.from('payment_proofs').getPublicUrl(path).data.publicUrl
-      }
-
-      // Determine team name
-      let finalTeamName = teamName.trim()
-      if (isSolo) {
-        const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
-        finalTeamName = profile?.full_name ?? `Player-${user.id.slice(0, 6)}`
-      }
-
-      // Create team
-      const { data: newTeam, error: teamErr } = await supabase
-        .from('teams').insert({ name: finalTeamName, captain_id: user.id }).select('id').single()
-      if (teamErr) throw new Error(`Gagal membuat tim: ${teamErr.message}`)
-
-      // Create team members
-      const memberRows = members.map((m, i) => ({
-        team_id: newTeam.id,
-        user_id: i === 0 ? user.id : null,
-        in_game_name: m.inGameName.trim() || (i === 0 ? finalTeamName : `Member ${i + 1}`),
-        in_game_id: m.inGameId.trim() || null,
-        role: i === 0 ? 'captain' : 'member',
-      }))
-      await supabase.from('team_members').insert(memberRows)
-
-      // Register tournament
-      const { error: regErr } = await supabase.from('tournament_registrations').insert({
-        tournament_id: tournamentId,
-        team_id: newTeam.id,
-        registered_by: user.id,
-        status: 'pending',
-        payment_proof_url: paymentProofUrl,
-        payment_method: paymentMethod,
-        payment_bank: selectedBank?.bank ?? null,
+      const res = await fetch('/api/tournaments/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tournamentId,
+          teamName: teamName.trim(),
+          members,
+          isSolo,
+          paymentProofUrl: null, // File upload not yet implemented
+          paymentMethod,
+          paymentBank: selectedBank?.bank ?? null,
+        }),
       })
-      if (regErr) {
-        if (regErr.code === '23505') toast.error('Anda sudah terdaftar di turnamen ini')
-        else toast.error(regErr.message)
+
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'Terjadi kesalahan')
         return
       }
 

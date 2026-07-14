@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useSession, signOut } from 'next-auth/react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
 import { cn } from '@/lib/utils'
@@ -21,7 +21,6 @@ import {
   ChevronDown,
   Newspaper,
 } from 'lucide-react'
-import type { Profile } from '@/lib/types'
 
 const navLinks = [
   { href: '/tournaments', label: 'Turnamen', icon: Trophy },
@@ -31,28 +30,24 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname()
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: session, status } = useSession()
+  const loading = status === 'loading'
+  const profile = session?.user ? {
+    id: session.user.id,
+    full_name: (session.user as any).full_name || session.user.name || '',
+    email: session.user.email || '',
+    role: (session.user as any).role || 'user',
+    avatar_url: session.user.image || null,
+  } : null
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const supabase = createClient()
 
   useEffect(() => {
-    const getProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-        setProfile(data)
-      }
-      setLoading(false)
-    }
-    getProfile()
-
     const handleScroll = () => setScrolled(window.scrollY > 8)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [supabase])
+  }, [])
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -65,8 +60,7 @@ export function Navbar() {
   }, [])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/'
+    await signOut({ callbackUrl: '/' })
   }
 
   const isActive = (href: string) =>

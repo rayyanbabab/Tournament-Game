@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useTransition } from 'react'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 export function ApproveTestimonialButton({ id, approved }: { id: string; approved: boolean }) {
@@ -11,11 +10,11 @@ export function ApproveTestimonialButton({ id, approved }: { id: string; approve
 
   const toggle = () => {
     startTransition(async () => {
-      const supabase = createClient()
-      await supabase
-        .from('testimonials')
-        .update({ approved: !approved })
-        .eq('id', id)
+      await fetch('/api/admin/testimonial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, approved: !approved }),
+      })
       router.refresh()
     })
   }

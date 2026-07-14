@@ -18,7 +18,7 @@ import {
   Menu,
   Award,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { signOut } from 'next-auth/react'
 import {
   Tooltip,
   TooltipContent,
@@ -58,7 +58,6 @@ interface UserSidebarProps {
 
 function SidebarNav({ profile, onClose }: { profile?: Profile | null; onClose?: () => void }) {
   const pathname = usePathname()
-  const supabase = createClient()
 
   const isActive = (item: { href: string; exact?: boolean }) => {
     if (item.exact) return pathname === item.href
@@ -66,8 +65,7 @@ function SidebarNav({ profile, onClose }: { profile?: Profile | null; onClose?: 
   }
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/'
+    await signOut({ callbackUrl: '/' })
   }
 
   return (

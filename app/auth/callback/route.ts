@@ -1,18 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl
-  const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
-
-  if (code) {
-    const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
-    }
-  }
-
-  return NextResponse.redirect(`${origin}/auth/error`)
+// Callback no longer needed with NextAuth credentials
+// This redirects to home if someone visits this old URL
+export async function GET() {
+  return NextResponse.redirect(new URL('/', process.env.NEXTAUTH_URL || 'http://localhost:3000'))
 }

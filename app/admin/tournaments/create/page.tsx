@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+// Supabase client migrated to Neon - see /api routes
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -70,7 +70,7 @@ export default function CreateTournamentPage() {
   // DB game configs (fetched on mount, fallback to static)
   const [dbGames, setDbGames] = useState(GAME_CONFIGS)
   const router = useRouter()
-  const supabase = createClient()
+  // const supabase = createClient() // migrated
 
   useEffect(() => {
     supabase.from('game_configs').select('*').order('category').order('label')

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,29 +27,31 @@ export function AddMemberDialog({ teamId }: AddMemberDialogProps) {
   const [inGameId, setInGameId] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      // Add member
-      const { error } = await supabase
-        .from('team_members')
-        .insert({
-          team_id: teamId,
-          in_game_name: inGameName,
-          in_game_id: inGameId,
-          role: 'member',
-        })
+      const res = await fetch('/api/teams/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          teamId,
+          userId: null,
+          inGameName,
+          inGameId,
+        }),
+      })
 
-      if (error) {
-        toast.error(error.message)
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast.error(data.error || 'Terjadi kesalahan')
         return
       }
 
-      toast.success(`${inGameName} berhasil ditambahkan ke tim!`)
+      toast.success('Anggota berhasil ditambahkan')
       setInGameName('')
       setInGameId('')
       setOpen(false)
@@ -65,55 +66,52 @@ export function AddMemberDialog({ teamId }: AddMemberDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
-          <UserPlus className="mr-2 h-4 w-4" />
+        <Button size="sm" variant="outline" className="h-8 gap-2 text-xs">
+          <UserPlus className="h-3.5 w-3.5" />
           Tambah Anggota
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Tambah Anggota Tim</DialogTitle>
           <DialogDescription>
-            Masukkan nama dan ID akun game anggota tim Anda.
+            Masukkan informasi in-game anggota baru.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleAddMember}>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="inGameName">Nama In-Game</Label>
-              <Input
-                id="inGameName"
-                placeholder="Contoh: Faker"
-                value={inGameName}
-                onChange={(e) => setInGameName(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="inGameId">ID Akun Game</Label>
-              <Input
-                id="inGameId"
-                placeholder="Contoh: 12345678"
-                value={inGameId}
-                onChange={(e) => setInGameId(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
+        <form onSubmit={handleAddMember} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="inGameName">Nama In-Game *</Label>
+            <Input
+              id="inGameName"
+              value={inGameName}
+              onChange={(e) => setInGameName(e.target.value)}
+              placeholder="Nama karakter dalam game"
+              required
+              disabled={loading}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="inGameId">ID In-Game</Label>
+            <Input
+              id="inGameId"
+              value={inGameId}
+              onChange={(e) => setInGameId(e.target.value)}
+              placeholder="ID unik dalam game (opsional)"
+              disabled={loading}
+            />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
               Batal
             </Button>
-            <Button type="submit" disabled={loading || !inGameName.trim() || !inGameId.trim()}>
+            <Button type="submit" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Menambahkan...
                 </>
               ) : (
-                'Tambah Anggota'
+                'Tambah'
               )}
             </Button>
           </DialogFooter>

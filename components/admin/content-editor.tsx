@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+// Supabase client migrated to Neon - see /api routes
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -57,7 +57,7 @@ const FIELDS = [
 export function ContentEditor({ initialContent }: ContentEditorProps) {
   const [content, setContent] = useState<Record<string, string>>(initialContent)
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
+  // const supabase = createClient() // migrated
 
   const handleSave = async () => {
     setLoading(true)

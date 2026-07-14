@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -26,22 +25,20 @@ interface RemoveMemberButtonProps {
 export function RemoveMemberButton({ memberId, memberName }: RemoveMemberButtonProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleRemove = async () => {
     setLoading(true)
-
     try {
-      const { error } = await supabase
-        .from('team_members')
-        .delete()
-        .eq('id', memberId)
-
-      if (error) {
-        toast.error(error.message)
+      const res = await fetch('/api/teams/members', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        toast.error(d.error || 'Terjadi kesalahan')
         return
       }
-
       toast.success('Anggota berhasil dihapus dari tim')
       router.refresh()
     } catch {

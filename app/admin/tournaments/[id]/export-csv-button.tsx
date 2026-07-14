@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Download, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -14,55 +13,34 @@ interface ExportCSVButtonProps {
 
 export function ExportCSVButton({ tournamentId, tournamentName }: ExportCSVButtonProps) {
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
 
   const handleExport = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('tournament_registrations')
-        .select(`
-          status, registered_at,
-          teams(name, contact_email, whatsapp_number, discord_link,
-            team_members(in_game_name, in_game_id, role,
-              profiles:user_id(full_name, email)
-            )
-          ),
-          profiles:registered_by(full_name, email)
-        `)
-        .eq('tournament_id', tournamentId)
-        .order('registered_at', { ascending: true })
-
-      if (error) { toast.error('Gagal mengambil data'); return }
+      const res = await fetch(`/api/admin/export-csv?tournamentId=${tournamentId}`)
+      if (!res.ok) {
+        toast.error('Gagal mengambil data')
+        return
+      }
+      const data = await res.json()
 
       // Build CSV rows
       const rows: string[][] = []
-      rows.push(['No', 'Nama Tim', 'Email Kontak', 'WhatsApp', 'Discord', 'Kapten', 'Email Kapten', 'Status', 'Tanggal Daftar', 'Anggota (Nama | In-Game | ID | Role)'])
+      rows.push(['No', 'Nama Tim', 'Email Kontak', 'WhatsApp', 'Kapten', 'Status', 'Tanggal Daftar'])
 
       data?.forEach((reg: any, idx: number) => {
-        const team = reg.teams
-        const members = (team?.team_members ?? [])
-          .map((m: any) => `${m.profiles?.full_name ?? '?'} | ${m.in_game_name ?? '-'} | ${m.in_game_id ?? '-'} | ${m.role}`)
-          .join('; ')
-
         rows.push([
           String(idx + 1),
-          team?.name ?? '',
-          team?.contact_email ?? '',
-          team?.whatsapp_number ?? '',
-          team?.discord_link ?? '',
-          reg.profiles?.full_name ?? '',
-          reg.profiles?.email ?? '',
+          reg.team_name ?? '',
+          reg.contact_email ?? '',
+          reg.whatsapp_number ?? '',
+          reg.registered_by_name ?? '',
           reg.status,
-          format(new Date(reg.registered_at), 'dd/MM/yyyy HH:mm'),
-          members,
+          reg.registered_at ? format(new Date(reg.registered_at), 'dd/MM/yyyy HH:mm') : '',
         ])
       })
 
-      // Generate CSV string (handle commas in values)
       const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n')
-
-      // Trigger download
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')

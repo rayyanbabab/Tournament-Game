@@ -14,3 +14,7 @@ node_modules
 .next/
 .DS_Store
 .vercel
+
+# Seed & setup scripts (contain credentials)
+scripts/
+neon_schema.sql

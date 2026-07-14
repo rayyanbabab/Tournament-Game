@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+// Supabase client migrated to Neon - see /api routes
 import {
   Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon,
   Heading2, Heading3, Quote, Minus, Eye, Edit3,
@@ -26,7 +26,7 @@ const CATEGORIES = ['Umum', 'Pengumuman', 'Rekap Turnamen', 'Berita Game', 'Tips
 
 export function NewsEditor({ initialData }: Props) {
   const router = useRouter()
-  const supabase = createClient()
+  // const supabase = createClient() // migrated
   const editorRef = useRef<HTMLDivElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
 

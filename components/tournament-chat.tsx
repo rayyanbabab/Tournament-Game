@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
+// Supabase client migrated to Neon - see /api routes
 import { Send, Loader2, MessageCircle, Shield } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
@@ -28,7 +28,7 @@ export function TournamentChat({ tournamentId, initialMessages, currentUserId, i
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const supabase = createClient()
+  // const supabase = createClient() // migrated
 
   // Auto-scroll on new messages
   useEffect(() => {
