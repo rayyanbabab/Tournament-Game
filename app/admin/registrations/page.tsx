@@ -24,8 +24,8 @@ export default async function AdminRegistrationsPage() {
     .select('*, tournaments(id, name, game, start_date), teams(id, name, team_members(count)), profiles:registered_by(full_name, email)')
     .order('registered_at', { ascending: false })
 
-  const pendingRegistrations = registrations?.filter(r => r.status === 'pending') || []
-  const otherRegistrations   = registrations?.filter(r => r.status !== 'pending') || []
+  const pendingRegistrations = registrations?.filter((r: any) => r.status === 'pending') || []
+  const otherRegistrations   = registrations?.filter((r: any) => r.status !== 'pending') || []
 
   const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
     pending:   { label: 'Menunggu',   color: 'bg-amber-500/10 text-amber-600 border-amber-500/20',     icon: Clock },

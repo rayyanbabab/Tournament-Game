@@ -43,7 +43,7 @@ export default async function AdminTournamentsPage() {
     countMap[t.id] = t.tournament_registrations?.[0]?.count || 0
   })
 
-  const totalActive = tournaments?.filter(t =>
+  const totalActive = tournaments?.filter((t: any) =>
     ['upcoming', 'ongoing'].includes(getTournamentStatus(t, countMap[t.id]))
   ).length || 0
 

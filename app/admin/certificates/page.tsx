@@ -33,11 +33,11 @@ export default async function AdminCertificatesPage() {
     .order('start_date', { ascending: false })
 
   // Process data
-  const processed = (tournaments ?? []).map(t => {
+  const processed = (tournaments ?? []).map((t: any) => {
     const allRegs = (t.tournament_registrations as any[]) ?? []
-    const approved = allRegs.filter(r => r.status === 'approved').length
+    const approved = allRegs.filter((r: any) => r.status === 'approved').length
     const results = (t.tournament_results as any[]) ?? []
-    const hasWinners = results.some(r => r.rank > 0)
+    const hasWinners = results.some((r: any) => r.rank > 0)
 
     return {
       ...t,
@@ -92,14 +92,14 @@ export default async function AdminCertificatesPage() {
               },
               {
                 label: 'Sudah Ada Pemenang',
-                value: processed.filter(t => t.hasWinners).length,
+                value: processed.filter((t: any) => t.hasWinners).length,
                 icon: Award,
                 color: 'text-purple-500',
                 bg: 'bg-purple-500/10 border-purple-500/20',
               },
               {
                 label: 'Total Peserta Approved',
-                value: processed.reduce((sum, t) => sum + t.approvedCount, 0),
+                value: processed.reduce((sum: number, t: any) => sum + t.approvedCount, 0),
                 icon: Users,
                 color: 'text-emerald-500',
                 bg: 'bg-emerald-500/10 border-emerald-500/20',
@@ -124,7 +124,7 @@ export default async function AdminCertificatesPage() {
             {processed.length > 0 ? (
               <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
                 <div className="divide-y divide-border/40">
-                  {processed.map(t => {
+                  {processed.map((t: any) => {
                     const status = statusConfig[t.status] ?? statusConfig.upcoming
                     return (
                       <Link

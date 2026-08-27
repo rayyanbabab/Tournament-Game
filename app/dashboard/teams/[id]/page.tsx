@@ -42,7 +42,7 @@ export default async function TeamDetailPage({
     .order('role', { ascending: false })
 
   const isCaptain = team.captain_id === user.id
-  const isMember = members?.some(m => m.user_id === user.id)
+  const isMember = members?.some((m: any) => m.user_id === user.id)
 
   if (!isCaptain && !isMember) redirect('/dashboard')
 

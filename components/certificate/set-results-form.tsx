@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-// Supabase client migrated to Neon - see /api routes
+import { saveTournamentResults, resetTournamentResults } from '@/app/actions/admin'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Trophy, Loader2, Save, RotateCcw } from 'lucide-react'
@@ -25,7 +25,6 @@ const RANKS = [
 ]
 
 export function SetResultsForm({ tournamentId, teams, existingResults, onSaved }: Props) {
-  // const supabase = createClient() // migrated
   const [saving, setSaving] = useState(false)
 
   // Build initial map: rank -> team_id
@@ -36,25 +35,17 @@ export function SetResultsForm({ tournamentId, teams, existingResults, onSaved }
   const handleSave = async () => {
     setSaving(true)
     try {
-      // Upsert results for rank 1, 2, 3
+      const resultsToSave: { team_id: string; rank: number }[] = []
       for (const r of RANKS) {
         const teamId = picks[r.rank]
-        if (!teamId) continue
-
-        const { error } = await supabase
-          .from('tournament_results')
-          .upsert({
-            tournament_id: tournamentId,
-            team_id: teamId,
-            rank: r.rank,
-          }, {
-            onConflict: 'tournament_id,team_id',
-          })
-
-        if (error) throw error
+        if (teamId) {
+          resultsToSave.push({ team_id: teamId, rank: r.rank })
+        }
       }
 
-      // Also ensure all approved teams have a rank=0 (participant) entry if not already set
+      const res = await saveTournamentResults(tournamentId, resultsToSave)
+      if (res?.error) throw new Error(res.error)
+
       toast.success('Hasil turnamen berhasil disimpan!')
       onSaved?.()
     } catch (err: any) {
@@ -68,11 +59,9 @@ export function SetResultsForm({ tournamentId, teams, existingResults, onSaved }
     if (!confirm('Reset semua hasil turnamen ini?')) return
     setSaving(true)
     try {
-      await supabase
-        .from('tournament_results')
-        .delete()
-        .eq('tournament_id', tournamentId)
-        .gt('rank', 0)
+      const res = await resetTournamentResults(tournamentId)
+      if (res?.error) throw new Error(res.error)
+
       setPicks({})
       toast.success('Hasil direset')
       onSaved?.()

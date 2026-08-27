@@ -29,7 +29,7 @@ export async function sendTournamentAnnouncement(
 
   if (!regs || regs.length === 0) return { error: 'Tidak ada peserta yang disetujui' }
 
-  const uniqueUserIds = [...new Set(regs.map(r => r.registered_by))]
+  const uniqueUserIds = [...new Set(regs.map((r: any) => r.registered_by))]
 
   const notifs = uniqueUserIds.map(userId => ({
     user_id: userId,

@@ -34,8 +34,8 @@ export default async function AdminSchedulePage({
     .order('match_number', { ascending: true })
 
   const totalMatches = matches?.length ?? 0
-  const completedMatches = matches?.filter(m => m.status === 'completed' || m.status === 'bye').length ?? 0
-  const scheduledMatches = matches?.filter(m => m.scheduled_at).length ?? 0
+  const completedMatches = matches?.filter((m: any) => m.status === 'completed' || m.status === 'bye').length ?? 0
+  const scheduledMatches = matches?.filter((m: any) => m.scheduled_at).length ?? 0
 
   return (
     <div className="flex min-h-screen bg-background">

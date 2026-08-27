@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-// Supabase client migrated to Neon - see /api routes
+import { sendChatMessage } from '@/app/actions/admin'
 import { Send, Loader2, MessageCircle, Shield } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
@@ -28,49 +28,35 @@ export function TournamentChat({ tournamentId, initialMessages, currentUserId, i
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  // const supabase = createClient() // migrated
 
   // Auto-scroll on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Realtime subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('chat-' + tournamentId)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'tournament_messages',
-        filter: `tournament_id=eq.${tournamentId}`,
-      }, async (payload) => {
-        const { data } = await supabase
-          .from('tournament_messages')
-          .select('*, profiles:user_id(full_name, avatar_url, role)')
-          .eq('id', payload.new.id)
-          .single()
-        if (data) setMessages(prev => [...prev, data as Message])
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [tournamentId, supabase])
-
   const sendMessage = useCallback(async () => {
     const text = input.trim()
     if (!text || sending) return
     setSending(true)
     setInput('')
-    const { error } = await supabase.from('tournament_messages').insert({
-      tournament_id: tournamentId,
+
+    // Optimistic message
+    const tempMsg: Message = {
+      id: `temp-${Date.now()}`,
       user_id: currentUserId,
       message: text,
-    })
-    if (error) setInput(text) // restore on error
+      created_at: new Date().toISOString(),
+      profiles: { full_name: 'Saya', avatar_url: null, role: isAdmin ? 'admin' : 'user' },
+    }
+    setMessages(prev => [...prev, tempMsg])
+
+    const res = await sendChatMessage(tournamentId, text)
+    if (res?.error) {
+      setInput(text) // restore on error
+    }
     setSending(false)
     inputRef.current?.focus()
-  }, [input, sending, tournamentId, currentUserId, supabase])
+  }, [input, sending, tournamentId, currentUserId, isAdmin])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }

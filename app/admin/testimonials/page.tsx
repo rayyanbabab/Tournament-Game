@@ -22,8 +22,8 @@ export default async function AdminTestimonialsPage() {
     .order('approved', { ascending: true })
     .order('created_at', { ascending: false })
 
-  const pending  = testimonials?.filter(t => !t.approved) ?? []
-  const approved = testimonials?.filter(t => t.approved)  ?? []
+  const pending  = testimonials?.filter((t: any) => !t.approved) ?? []
+  const approved = testimonials?.filter((t: any) => t.approved)  ?? []
 
   return (
     <div className="flex min-h-screen bg-background">

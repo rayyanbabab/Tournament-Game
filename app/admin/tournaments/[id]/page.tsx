@@ -58,8 +58,8 @@ export default async function AdminTournamentDetailPage({
     withdrawn: { label: 'Dibatalkan', bg: 'bg-muted/40',       text: 'text-muted-foreground', border: 'border-border/40' },
   }
 
-  const approvedCount = registrations?.filter(r => r.status === 'approved').length || 0
-  const pendingCount  = registrations?.filter(r => r.status === 'pending').length  || 0
+  const approvedCount = registrations?.filter((r: any) => r.status === 'approved').length || 0
+  const pendingCount  = registrations?.filter((r: any) => r.status === 'pending').length  || 0
   const currentStatus = getTournamentStatus(tournament, approvedCount)
   const statusCfg = statusConfig[currentStatus] ?? statusConfig.upcoming
   const fillPct = tournament.max_teams > 0 ? Math.round((approvedCount / tournament.max_teams) * 100) : 0

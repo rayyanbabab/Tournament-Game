@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { ArrowLeft, Loader2, Users, Image as ImageIcon, Phone, Mail, Info } from 'lucide-react'
+import { ArrowLeft, Loader2, Users, Image as ImageIcon, Phone, Mail, Info, Upload } from 'lucide-react'
 import { UserSidebar } from '@/components/user/sidebar'
 
 export default function CreateTeamPage() {
@@ -18,6 +18,7 @@ export default function CreateTeamPage() {
   const [description, setDescription] = useState('')
   const [contactEmail, setContactEmail] = useState('')
   const [whatsappNumber, setWhatsappNumber] = useState('')
+  const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()

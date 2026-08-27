@@ -49,7 +49,7 @@ export default async function AdminCertificateDetailPage({ params }: Props) {
 
   // Build teams list with rank info
   const resultsMap: Record<string, number> = {}
-  ;(existingResults ?? []).forEach(r => { resultsMap[r.team_id] = r.rank })
+  ;(existingResults ?? []).forEach((r: any) => { resultsMap[r.team_id] = r.rank })
 
   const rankLabels: Record<number, string> = {
     1: 'Juara 1',

@@ -35,9 +35,9 @@ export default async function AdminPaymentsPage() {
     .select('*, tournaments(id, name, game, registration_fee), teams(id, name, logo_url), profiles:registered_by(full_name, email)')
     .order('registered_at', { ascending: false })
 
-  const withPayment = registrations?.filter(r => r.payment_proof_url) || []
-  const withoutPayment = registrations?.filter(r => !r.payment_proof_url) || []
-  const pendingWithPayment = withPayment.filter(r => r.status === 'pending')
+  const withPayment = registrations?.filter((r: any) => r.payment_proof_url) || []
+  const withoutPayment = registrations?.filter((r: any) => !r.payment_proof_url) || []
+  const pendingWithPayment = withPayment.filter((r: any) => r.status === 'pending')
 
   const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
     pending: { label: 'Menunggu', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20', icon: Clock },

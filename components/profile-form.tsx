@@ -10,13 +10,13 @@ import { Loader2, User, Phone, Mail, Camera } from 'lucide-react'
 import type { Profile } from '@/lib/types'
 
 interface ProfileFormProps {
-  initialProfile: Profile
+  initialProfile?: Profile | null
 }
 
 export function ProfileForm({ initialProfile }: ProfileFormProps) {
-  const [fullName, setFullName] = useState(initialProfile.full_name || '')
-  const [phone, setPhone] = useState(initialProfile.phone || '')
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(initialProfile.avatar_url)
+  const [fullName, setFullName] = useState(initialProfile?.full_name || '')
+  const [phone, setPhone] = useState(initialProfile?.phone || '')
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(initialProfile?.avatar_url || null)
   const [loading, setLoading] = useState(false)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,7 +113,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
               <Input
                 id="email"
                 type="email"
-                value={initialProfile.email}
+                value={initialProfile?.email || ''}
                 disabled
                 className="pl-9 bg-muted/50"
               />

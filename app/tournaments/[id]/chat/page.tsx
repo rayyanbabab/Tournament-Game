@@ -79,7 +79,7 @@ export default async function TournamentChatPage({
             <TournamentChat
               tournamentId={tournamentId}
               initialMessages={initialMessages}
-              currentUserId={user.id}
+              currentUserId={user.id || ''}
               isAdmin={isAdmin}
             />
           ) : (

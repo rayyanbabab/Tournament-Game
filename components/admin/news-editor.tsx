@@ -2,11 +2,11 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-// Supabase client migrated to Neon - see /api routes
+import { saveNewsArticle } from '@/app/actions/admin'
 import {
   Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon,
   Heading2, Heading3, Quote, Minus, Eye, Edit3,
-  Save, Send, Loader2, Upload, X, CheckCircle2, AlertCircle,
+  Save, Send, Loader2, CheckCircle2, AlertCircle,
 } from 'lucide-react'
 
 interface Props {
@@ -26,7 +26,6 @@ const CATEGORIES = ['Umum', 'Pengumuman', 'Rekap Turnamen', 'Berita Game', 'Tips
 
 export function NewsEditor({ initialData }: Props) {
   const router = useRouter()
-  // const supabase = createClient() // migrated
   const editorRef = useRef<HTMLDivElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
@@ -46,16 +45,23 @@ export function NewsEditor({ initialData }: Props) {
     setTimeout(() => setToast(null), 3500)
   }
 
-  const generateSlug = (t: string) =>
-    t.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60)
-
-  const handleTitleChange = (v: string) => {
-    setTitle(v)
-    if (!initialData?.id) setSlug(generateSlug(v))
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
   }
 
-  const exec = (cmd: string, val?: string) => {
-    document.execCommand(cmd, false, val)
+  const handleTitleChange = (val: string) => {
+    setTitle(val)
+    if (!initialData?.id) {
+      setSlug(generateSlug(val))
+    }
+  }
+
+  const exec = (command: string, value: string | undefined = undefined) => {
+    document.execCommand(command, false, value)
     editorRef.current?.focus()
   }
 
@@ -87,13 +93,9 @@ export function NewsEditor({ initialData }: Props) {
     if (!file) return
     setUploadingCover(true)
     try {
-      const ext = file.name.split('.').pop()
-      const filePath = `news/cover-${Date.now()}.${ext}`
-      const { error } = await supabase.storage.from('tournaments').upload(filePath, file, { upsert: true })
-      if (error) throw error
-      const { data: { publicUrl } } = supabase.storage.from('tournaments').getPublicUrl(filePath)
-      setCoverUrl(publicUrl)
-      showToast('success', 'Cover berhasil diupload!')
+      const previewUrl = URL.createObjectURL(file)
+      setCoverUrl(previewUrl)
+      showToast('success', 'Cover berhasil dipilih!')
     } catch (e: any) {
       showToast('error', `Upload gagal: ${e.message}`)
     } finally {
@@ -125,14 +127,8 @@ export function NewsEditor({ initialData }: Props) {
         updated_at: new Date().toISOString(),
       }
 
-      let error: any
-      if (initialData?.id) {
-        ;({ error } = await supabase.from('news_articles').update(payload).eq('id', initialData.id))
-      } else {
-        ;({ error } = await supabase.from('news_articles').insert(payload))
-      }
-
-      if (error) throw error
+      const res = await saveNewsArticle(payload, initialData?.id)
+      if (res?.error) throw new Error(res.error)
 
       setPublished(isPublished)
       showToast('success', isPublished ? 'Artikel dipublikasikan!' : 'Draft disimpan!')

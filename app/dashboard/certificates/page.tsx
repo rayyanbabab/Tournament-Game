@@ -38,7 +38,7 @@ export default async function MyCertificatesPage() {
     .select('team_id')
     .eq('user_id', user.id)
 
-  const memberTeamIds = new Set((memberOf ?? []).map(m => m.team_id))
+  const memberTeamIds = new Set((memberOf ?? []).map((m: any) => m.team_id))
 
   const myRegistrations = (registrations ?? []).filter((reg: any) =>
     reg.teams.captain_id === user.id || memberTeamIds.has(reg.teams.id)
@@ -55,7 +55,7 @@ export default async function MyCertificatesPage() {
     .in('team_id', teamIds.length > 0 ? teamIds : ['none'])
 
   const resultsMap: Record<string, Record<string, number>> = {}
-  ;(results ?? []).forEach(r => {
+  ;(results ?? []).forEach((r: any) => {
     if (!resultsMap[r.tournament_id]) resultsMap[r.tournament_id] = {}
     resultsMap[r.tournament_id][r.team_id] = r.rank
   })

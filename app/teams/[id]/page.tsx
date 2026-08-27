@@ -53,7 +53,7 @@ export default async function PublicTeamProfilePage({ params }: { params: Promis
     if (allM?.[0] && rounds.includes(allM[0].round)) tournamentWins++
   }
 
-  const approvedCount = registrations?.filter(r => r.status === 'approved').length ?? 0
+  const approvedCount = registrations?.filter((r: any) => r.status === 'approved').length ?? 0
   const captain = team.captain as any
 
   return (

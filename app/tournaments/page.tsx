@@ -27,8 +27,8 @@ export default async function TournamentsPage({
   try { await supabase.rpc('sync_tournament_statuses') } catch { }
 
   const { data: allForFilters } = await supabase.from('tournaments').select('game, location')
-  const games     = [...new Set(allForFilters?.map(t => t.game).filter(Boolean) ?? [])].sort()
-  const locations = [...new Set(allForFilters?.map(t => t.location).filter(Boolean) ?? [])].sort()
+  const games: string[] = Array.from(new Set<string>((allForFilters ?? []).map((t: any) => t.game).filter(Boolean))).sort()
+  const locations: string[] = Array.from(new Set<string>((allForFilters ?? []).map((t: any) => t.location).filter(Boolean))).sort()
 
   let query = supabase.from('tournaments').select('*').order('start_date', { ascending: true })
 

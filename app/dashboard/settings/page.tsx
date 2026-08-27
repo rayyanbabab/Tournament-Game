@@ -12,6 +12,15 @@ export default async function UserSettingsPage() {
   const { data: profile } = await supabase
     .from('profiles').select('*').eq('id', user.id).single()
 
+  const currentProfile = profile || {
+    id: user.id,
+    email: user.email,
+    full_name: (user as any).full_name || '',
+    role: (user as any).role || 'user',
+    phone: '',
+    avatar_url: null,
+  }
+
   return (
     <main className="flex-1 p-4 md:p-6 overflow-y-auto pt-16 md:pt-6">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -28,27 +37,27 @@ export default async function UserSettingsPage() {
             </div>
 
             {/* Profile Card */}
-            {profile && (
+            {currentProfile && (
               <div className="rounded-2xl border border-border/60 bg-card p-5 flex items-center gap-4">
                 <div className="h-14 w-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
-                  {(profile as any).avatar_url ? (
-                    <img src={(profile as any).avatar_url} alt="avatar" className="h-full w-full object-cover" />
+                  {(currentProfile as any).avatar_url ? (
+                    <img src={(currentProfile as any).avatar_url} alt="avatar" className="h-full w-full object-cover" />
                   ) : (
                     <span className="text-2xl font-extrabold text-primary">
-                      {(profile.full_name || 'G')[0].toUpperCase()}
+                      {(currentProfile.full_name || 'G')[0]?.toUpperCase() || 'G'}
                     </span>
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-base font-bold text-foreground">{profile.full_name || 'Gamer'}</p>
-                  <p className="text-sm text-muted-foreground">{profile.email}</p>
+                  <p className="text-base font-bold text-foreground">{currentProfile.full_name || 'Gamer'}</p>
+                  <p className="text-sm text-muted-foreground">{currentProfile.email}</p>
                   <span className={`inline-flex items-center gap-1 text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full border ${
-                    profile.role === 'admin'
+                    currentProfile.role === 'admin'
                       ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
                       : 'bg-primary/10 text-primary border-primary/20'
                   }`}>
                     <User className="h-2.5 w-2.5" />
-                    {profile.role === 'admin' ? 'Admin' : 'Player'}
+                    {currentProfile.role === 'admin' ? 'Admin' : 'Player'}
                   </span>
                 </div>
               </div>
@@ -56,7 +65,7 @@ export default async function UserSettingsPage() {
 
             {/* Form */}
             <div className="rounded-2xl border border-border/60 bg-card p-6">
-              <ProfileForm initialProfile={profile} />
+              <ProfileForm initialProfile={currentProfile as any} />
             </div>
       </div>
     </main>

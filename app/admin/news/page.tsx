@@ -43,8 +43,8 @@ export default async function AdminNewsPage() {
                 Berita & Pengumuman
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {articles?.filter(a => a.published).length ?? 0} artikel dipublikasikan ·{' '}
-                {articles?.filter(a => !a.published).length ?? 0} draft
+                {articles?.filter((a: any) => a.published).length ?? 0} artikel dipublikasikan ·{' '}
+                {articles?.filter((a: any) => !a.published).length ?? 0} draft
               </p>
             </div>
             <Link

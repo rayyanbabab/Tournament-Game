@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-// Supabase client migrated to Neon - see /api routes
+import { savePaymentSettings } from '@/app/actions/admin'
 import {
   Plus, Trash2, Save, Upload, Loader2, CheckCircle2,
   AlertCircle, Building2, QrCode, FileText, X,
@@ -24,12 +24,11 @@ interface Props {
 }
 
 export function PaymentSettingsEditor({ initial }: Props) {
-  // const supabase = createClient() // migrated
   const qrisInputRef = useRef<HTMLInputElement>(null)
 
   const [banks, setBanks] = useState<BankAccount[]>(initial.bank_accounts ?? [])
-  const [qrisUrl, setQrisUrl] = useState(initial.qris_image_url ?? '')
-  const [instructions, setInstructions] = useState(initial.payment_instructions ?? '')
+  const [qrisUrl, setQrisUrl] = useState<string | null>(initial.qris_image_url)
+  const [instructions, setInstructions] = useState<string>(initial.payment_instructions ?? '')
   const [saving, setSaving] = useState(false)
   const [uploadingQris, setUploadingQris] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
@@ -40,15 +39,15 @@ export function PaymentSettingsEditor({ initial }: Props) {
   }
 
   const addBank = () => {
-    setBanks([...banks, { bank: '', accountNumber: '', accountHolder: '' }])
+    setBanks(prev => [...prev, { bank: '', accountNumber: '', accountHolder: '' }])
   }
 
-  const removeBank = (i: number) => {
-    setBanks(banks.filter((_, idx) => idx !== i))
+  const removeBank = (index: number) => {
+    setBanks(prev => prev.filter((_, i) => i !== index))
   }
 
-  const updateBank = (i: number, field: keyof BankAccount, value: string) => {
-    setBanks(banks.map((b, idx) => idx === i ? { ...b, [field]: value } : b))
+  const updateBank = (index: number, field: keyof BankAccount, value: string) => {
+    setBanks(prev => prev.map((b, i) => i === index ? { ...b, [field]: value } : b))
   }
 
   const handleQrisUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,21 +60,9 @@ export function PaymentSettingsEditor({ initial }: Props) {
 
     setUploadingQris(true)
     try {
-      const ext = file.name.split('.').pop()
-      const fileName = `qris/qris-${Date.now()}.${ext}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('tournaments')
-        .upload(fileName, file, { upsert: true })
-
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('tournaments')
-        .getPublicUrl(fileName)
-
-      setQrisUrl(publicUrl)
-      showToast('success', 'Foto QRIS berhasil diupload!')
+      const previewUrl = URL.createObjectURL(file)
+      setQrisUrl(previewUrl)
+      showToast('success', 'Foto QRIS berhasil dipilih!')
     } catch (e: any) {
       showToast('error', `Upload gagal: ${e.message}`)
     } finally {
@@ -87,17 +74,13 @@ export function PaymentSettingsEditor({ initial }: Props) {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from('payment_settings')
-        .upsert({
-          id: 1,
-          bank_accounts: banks.filter(b => b.bank || b.accountNumber),
-          qris_image_url: qrisUrl || null,
-          payment_instructions: instructions || null,
-          updated_at: new Date().toISOString(),
-        })
+      const res = await savePaymentSettings({
+        bank_accounts: banks.filter(b => b.bank || b.accountNumber),
+        qris_image_url: qrisUrl || null,
+        payment_instructions: instructions || null,
+      })
 
-      if (error) throw error
+      if (res?.error) throw new Error(res.error)
       showToast('success', 'Pengaturan pembayaran berhasil disimpan!')
     } catch (e: any) {
       showToast('error', `Gagal menyimpan: ${e.message}`)

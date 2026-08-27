@@ -14,10 +14,10 @@ import { TrendingUp, Activity, Clock, CheckCircle, XCircle } from 'lucide-react'
 type Period = '7d' | '30d' | '90d'
 
 interface VisitorsChartProps {
-  registrations: { registered_at: string; status: string }[]
+  registrations: { registered_at: string | Date; status: string }[]
 }
 
-function generateTimeSeriesData(registrations: { registered_at: string }[], period: Period) {
+function generateTimeSeriesData(registrations: { registered_at: string | Date }[], period: Period) {
   const now = new Date()
   const start =
     period === '7d'  ? subDays(now, 7)
@@ -26,7 +26,15 @@ function generateTimeSeriesData(registrations: { registered_at: string }[], peri
   const days = eachDayOfInterval({ start, end: now })
   return days.map((day) => {
     const dayStr = format(day, 'yyyy-MM-dd')
-    const count = registrations.filter((r) => r.registered_at.startsWith(dayStr)).length
+    const count = registrations.filter((r) => {
+      if (!r?.registered_at) return false
+      try {
+        const d = r.registered_at instanceof Date ? r.registered_at : new Date(r.registered_at)
+        return format(d, 'yyyy-MM-dd') === dayStr
+      } catch {
+        return false
+      }
+    }).length
     return {
       date: day,
       label:

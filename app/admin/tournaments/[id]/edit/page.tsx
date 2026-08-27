@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-// Supabase client migrated to Neon API routes
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -78,7 +78,7 @@ export default function EditTournamentPage({ params }: { params: Promise<{ id: s
   // Fetch DB game configs
   useEffect(() => {
     supabase.from('game_configs').select('*').order('category').order('label')
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (data && data.length > 0) {
           setDbGames(data.map((g: any) => ({
             value: g.value, label: g.label, emoji: g.emoji, category: g.category,
@@ -94,7 +94,7 @@ export default function EditTournamentPage({ params }: { params: Promise<{ id: s
   // Fetch existing tournament and pre-fill
   useEffect(() => {
     supabase.from('tournaments').select('*').eq('id', id).single()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (!data) return
         // Parse CONFIG block from rules
         const configMatch = data.rules?.match(/---CONFIG:(\{[^}]*\})/)

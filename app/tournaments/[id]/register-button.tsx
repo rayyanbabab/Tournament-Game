@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { toast } from 'sonner'
@@ -30,6 +31,7 @@ type PaymentMethod = 'bank' | 'qris'
 type Step = 1 | 2 | 3
 
 export function RegisterTournamentButton({ tournamentId, teamSize, registrationFee }: Props) {
+  const supabase = createClient()
   const isSolo = teamSize === 1
   const isFree = !registrationFee || ['gratis', '0', '-', 'free'].includes(registrationFee.trim().toLowerCase())
 

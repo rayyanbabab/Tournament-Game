@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-// Supabase client migrated to Neon - see /api routes
+import { saveSiteSettings } from '@/app/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -65,16 +65,14 @@ export function ContentEditor({ initialContent }: ContentEditorProps) {
       const entries = Object.entries(content).map(([key, value]) => ({
         key,
         value,
-        updated_at: new Date().toISOString()
       }))
 
-      for (const entry of entries) {
-        await supabase.from('site_settings').upsert(entry, { onConflict: 'key' })
-      }
+      const res = await saveSiteSettings(entries)
+      if (res?.error) throw new Error(res.error)
 
       toast.success('Konten berhasil disimpan!')
-    } catch (err) {
-      toast.error('Gagal menyimpan konten')
+    } catch (err: any) {
+      toast.error(err.message || 'Gagal menyimpan konten')
     } finally {
       setLoading(false)
     }

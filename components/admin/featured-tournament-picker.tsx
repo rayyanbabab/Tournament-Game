@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-// Supabase client migrated to Neon - see /api routes
+import { saveFeaturedTournament } from '@/app/actions/admin'
 import { Flame, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react'
 
 interface Tournament {
@@ -21,7 +21,6 @@ export function FeaturedTournamentPicker({ tournaments, currentFeaturedId }: Pro
   const [selected, setSelected] = useState<string | null>(currentFeaturedId)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
-  // const supabase = createClient() // migrated
 
   const showToast = (type: 'success' | 'error', msg: string) => {
     setToast({ type, msg })
@@ -31,10 +30,8 @@ export function FeaturedTournamentPicker({ tournaments, currentFeaturedId }: Pro
   const handleSave = async () => {
     setSaving(true)
     try {
-      await supabase.from('site_settings').upsert(
-        { key: 'featured_tournament_id', value: selected ?? '', updated_at: new Date().toISOString() },
-        { onConflict: 'key' }
-      )
+      const res = await saveFeaturedTournament(selected)
+      if (res?.error) throw new Error(res.error)
       showToast('success', selected ? 'Featured tournament berhasil disimpan!' : 'Featured tournament dihapus.')
     } catch (e: any) {
       showToast('error', e.message)

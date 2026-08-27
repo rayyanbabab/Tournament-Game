@@ -36,7 +36,7 @@ export default async function AdminAnalyticsPage() {
     const d = subMonths(new Date(), i)
     monthData[format(d, 'MMM yy', { locale: idLocale })] = 0
   }
-  allRegistrations?.forEach(r => {
+  allRegistrations?.forEach((r: any) => {
     const key = format(new Date(r.registered_at), 'MMM yy', { locale: idLocale })
     if (monthData[key] !== undefined) monthData[key]++
   })
@@ -44,16 +44,16 @@ export default async function AdminAnalyticsPage() {
 
   // Game popularity
   const gameCount: Record<string, number> = {}
-  allTournaments?.forEach(t => { gameCount[t.game] = (gameCount[t.game] || 0) + 1 })
+  allTournaments?.forEach((t: any) => { gameCount[t.game] = (gameCount[t.game] || 0) + 1 })
   const gameChartData = Object.entries(gameCount)
     .map(([game, count]) => ({ game, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 8)
 
   // Status distribution
-  const pending  = allRegistrations?.filter(r => r.status === 'pending').length ?? 0
-  const approved = allRegistrations?.filter(r => r.status === 'approved').length ?? 0
-  const rejected = allRegistrations?.filter(r => r.status === 'rejected').length ?? 0
+  const pending  = allRegistrations?.filter((r: any) => r.status === 'pending').length ?? 0
+  const approved = allRegistrations?.filter((r: any) => r.status === 'approved').length ?? 0
+  const rejected = allRegistrations?.filter((r: any) => r.status === 'rejected').length ?? 0
   const statusData = [
     { name: 'Disetujui', value: approved },
     { name: 'Menunggu',  value: pending },
@@ -62,12 +62,12 @@ export default async function AdminAnalyticsPage() {
 
   // Top tournaments by registration count
   const regByTournament: Record<string, number> = {}
-  allRegistrations?.forEach(r => {
+  allRegistrations?.forEach((r: any) => {
     regByTournament[r.tournament_id] = (regByTournament[r.tournament_id] || 0) + 1
   })
   const topTournaments = Object.entries(regByTournament)
     .map(([tid, count]) => {
-      const t = allTournaments?.find(t => t.id === tid)
+      const t = allTournaments?.find((t: any) => t.id === tid)
       return { name: t?.name?.slice(0, 20) ?? tid.slice(0, 8), registrations: count }
     })
     .sort((a, b) => b.registrations - a.registrations)
@@ -149,7 +149,7 @@ export default async function AdminAnalyticsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/40">
-                    {allTournaments.map(t => (
+                    {allTournaments.map((t: any) => (
                       <tr key={t.id} className="hover:bg-muted/20 transition-colors">
                         <td className="px-4 py-3">
                           <Link href={`/admin/tournaments/${t.id}`} className="font-medium text-foreground hover:text-primary transition-colors">{t.name}</Link>
