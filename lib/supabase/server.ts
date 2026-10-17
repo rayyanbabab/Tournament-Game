@@ -19,6 +19,86 @@ function escapeVal(val: any): string {
   return `'${String(val).replace(/'/g, "''")}'`
 }
 
+async function hydrateRelations(table: string, _select: string, rows: any[]) {
+  if (!rows || rows.length === 0) return rows
+
+  try {
+    // Hydrate teams
+    if (_select.includes('teams') || _select.includes('team')) {
+      const teamIds = [...new Set(rows.flatMap(r => [r.team_id, r.team1_id, r.team2_id]).filter(Boolean))]
+      if (teamIds.length) {
+        const list = teamIds.map(id => escapeVal(id)).join(', ')
+        const tRows = await sql.query(`SELECT id, name, logo_url, captain_id FROM teams WHERE id IN (${list})`)
+        const tMap = Object.fromEntries(tRows.map((t: any) => [t.id, t]))
+        for (const r of rows) {
+          if (r.team_id !== undefined) r.teams = tMap[r.team_id] || null
+          if (r.team1_id !== undefined) r.team1 = tMap[r.team1_id] || null
+          if (r.team2_id !== undefined) r.team2 = tMap[r.team2_id] || null
+        }
+      }
+    }
+
+    // Hydrate tournaments
+    if (_select.includes('tournaments')) {
+      const tIds = [...new Set(rows.map(r => r.tournament_id).filter(Boolean))]
+      if (tIds.length) {
+        const list = tIds.map(id => escapeVal(id)).join(', ')
+        const tRows = await sql.query(`SELECT * FROM tournaments WHERE id IN (${list})`)
+        const tMap = Object.fromEntries(tRows.map((t: any) => [t.id, t]))
+        for (const r of rows) {
+          if (r.tournament_id !== undefined) r.tournaments = tMap[r.tournament_id] || null
+        }
+      }
+    }
+
+    // Hydrate profiles / captain
+    if (_select.includes('profiles') || _select.includes('captain')) {
+      const profIds = [...new Set(rows.flatMap(r => [r.captain_id, r.user_id, r.registered_by, r.created_by]).filter(Boolean))]
+      if (profIds.length) {
+        const list = profIds.map(id => escapeVal(id)).join(', ')
+        const pRows = await sql.query(`SELECT id, email, full_name, role, avatar_url FROM profiles WHERE id IN (${list})`)
+        const pMap = Object.fromEntries(pRows.map((p: any) => [p.id, p]))
+        for (const r of rows) {
+          if (r.captain_id !== undefined) r.captain = pMap[r.captain_id] || null
+          if (r.registered_by !== undefined) r.profiles = pMap[r.registered_by] || null
+          if (r.user_id !== undefined) r.profiles = pMap[r.user_id] || null
+          if (r.created_by !== undefined) r.profiles = pMap[r.created_by] || null
+        }
+      }
+    }
+
+    // Hydrate team_members(count)
+    if (table === 'teams' && _select.includes('team_members')) {
+      const ids = rows.map(r => r.id).filter(Boolean)
+      if (ids.length) {
+        const list = ids.map(id => escapeVal(id)).join(', ')
+        const cRows = await sql.query(`SELECT team_id, count(*)::int as count FROM team_members WHERE team_id IN (${list}) GROUP BY team_id`)
+        const cMap = Object.fromEntries(cRows.map((c: any) => [c.team_id, c.count]))
+        for (const r of rows) {
+          r.team_members = [{ count: cMap[r.id] || 0 }]
+        }
+      }
+    }
+
+    // Hydrate tournament_registrations(count)
+    if (table === 'tournaments' && _select.includes('tournament_registrations')) {
+      const ids = rows.map(r => r.id).filter(Boolean)
+      if (ids.length) {
+        const list = ids.map(id => escapeVal(id)).join(', ')
+        const cRows = await sql.query(`SELECT tournament_id, count(*)::int as count FROM tournament_registrations WHERE tournament_id IN (${list}) GROUP BY tournament_id`)
+        const cMap = Object.fromEntries(cRows.map((c: any) => [c.tournament_id, c.count]))
+        for (const r of rows) {
+          r.tournament_registrations = [{ count: cMap[r.id] || 0 }]
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[hydrateRelations] error:', err)
+  }
+
+  return rows
+}
+
 // Minimal query builder that mimics supabase chaining API
 function buildQuery(table: string) {
   let _select = '*'
@@ -75,7 +155,8 @@ function buildQuery(table: string) {
           return { count: parseInt(rows[0]?.count || '0'), data: null, error: null }
         }
 
-        const rows = await sql.query(`SELECT * FROM "${table}" ${where} ${orderBy} ${limitClause}`)
+        const rawRows = await sql.query(`SELECT * FROM "${table}" ${where} ${orderBy} ${limitClause}`)
+        const rows = await hydrateRelations(table, _select, rawRows)
 
         if (_single) {
           return { data: rows[0] || null, error: rows[0] ? null : { message: 'Not found' } }

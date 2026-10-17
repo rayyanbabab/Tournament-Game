@@ -108,7 +108,7 @@ export default async function AdminPaymentsPage() {
           {showActions ? (
             <RegistrationActions registrationId={reg.id} />
           ) : (
-            <span className="text-xs text-muted-foreground">—</span>
+            <span className="text-xs text-muted-foreground">-</span>
           )}
         </div>
       </div>
@@ -144,12 +144,12 @@ export default async function AdminPaymentsPage() {
           {/* Summary stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: 'Total Pendaftaran', value: registrations?.length || 0, accent: 'border-l-foreground/30',   valColor: 'text-foreground' },
-              { label: 'Ada Bukti Bayar',   value: withPayment.length,          accent: 'border-l-primary',         valColor: 'text-primary' },
-              { label: 'Perlu Diverifikasi', value: pendingWithPayment.length,   accent: 'border-l-amber-500',       valColor: 'text-amber-500' },
-              { label: 'Tanpa Bukti',        value: withoutPayment.length,       accent: 'border-l-muted-foreground', valColor: 'text-muted-foreground' },
+              { label: 'Total Pendaftaran', value: registrations?.length || 0, valColor: 'text-foreground' },
+              { label: 'Ada Bukti Bayar',   value: withPayment.length,          valColor: 'text-primary' },
+              { label: 'Perlu Diverifikasi', value: pendingWithPayment.length,   valColor: 'text-amber-500' },
+              { label: 'Tanpa Bukti',        value: withoutPayment.length,       valColor: 'text-muted-foreground' },
             ].map((s, i) => (
-              <div key={i} className={`rounded-xl border border-border/60 border-l-2 ${s.accent} bg-card p-4`}>
+              <div key={i} className="rounded-xl border border-border/70 bg-card p-4">
                 <p className={`text-3xl font-extrabold tabular-nums ${s.valColor}`}>{s.value}</p>
                 <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
               </div>

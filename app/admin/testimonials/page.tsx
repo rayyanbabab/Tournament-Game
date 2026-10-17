@@ -53,11 +53,11 @@ export default async function AdminTestimonialsPage() {
           {/* Stat cards */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Total Ulasan',      value: testimonials?.length || 0, accent: 'border-l-foreground/30', valColor: 'text-foreground' },
-              { label: 'Menunggu Review',   value: pending.length,            accent: 'border-l-amber-500',     valColor: 'text-amber-500' },
-              { label: 'Sudah Disetujui',   value: approved.length,           accent: 'border-l-emerald-500',   valColor: 'text-emerald-500' },
+              { label: 'Total Ulasan',      value: testimonials?.length || 0, valColor: 'text-foreground' },
+              { label: 'Menunggu Review',   value: pending.length,            valColor: 'text-amber-500' },
+              { label: 'Sudah Disetujui',   value: approved.length,           valColor: 'text-emerald-500' },
             ].map((s, i) => (
-              <div key={i} className={`rounded-xl border border-border/60 border-l-2 ${s.accent} bg-card p-4`}>
+              <div key={i} className="rounded-xl border border-border/70 bg-card p-4">
                 <p className={`text-3xl font-extrabold tabular-nums ${s.valColor}`}>{s.value}</p>
                 <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
               </div>

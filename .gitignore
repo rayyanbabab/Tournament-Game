@@ -18,3 +18,9 @@ node_modules
 # Seed & setup scripts (contain credentials)
 scripts/
 neon_schema.sql
+
+# Build artifacts & logs
+*.log
+*.tsbuildinfo
+scratch_hallmark/
+.agents/

@@ -99,7 +99,7 @@ export default async function AdminBracketPage({
             <GenerateBracketButton tournamentId={tournamentId} hasBracket={hasBracket} approvedCount={approvedTeams.length} />
           </div>
 
-          {/* Info banner — redirect to schedule for score input */}
+          {/* Info banner: redirect to schedule for score input */}
           <div className="flex items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-3">
             <Info className="h-4 w-4 text-blue-500 shrink-0" />
             <p className="text-sm text-blue-600 flex-1">
@@ -115,11 +115,11 @@ export default async function AdminBracketPage({
 
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Tim Disetujui',      value: approvedTeams.length, accent: 'border-l-primary' },
-              { label: 'Total Pertandingan', value: totalMatchable,        accent: 'border-l-violet-500' },
-              { label: 'Selesai',            value: completedCount,        accent: 'border-l-emerald-500' },
+              { label: 'Tim Disetujui',      value: approvedTeams.length },
+              { label: 'Total Pertandingan', value: totalMatchable },
+              { label: 'Selesai',            value: completedCount },
             ].map((s, i) => (
-              <div key={i} className={`rounded-xl border border-border/60 border-l-2 ${s.accent} bg-card p-4`}>
+              <div key={i} className="rounded-xl border border-border/70 bg-card p-4">
                 <p className="text-2xl font-extrabold tabular-nums text-foreground">{s.value}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
               </div>

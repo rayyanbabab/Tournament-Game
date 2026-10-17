@@ -97,8 +97,8 @@ export default async function TournamentDetailPage({
           {tournament.image_url ? (
             <img src={tournament.image_url} alt={tournament.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/5 to-violet-500/10 flex items-center justify-center">
-              <Gamepad2 className="h-24 w-24 text-primary/20" />
+            <div className="w-full h-full bg-muted flex items-center justify-center">
+              <Gamepad2 className="h-20 w-20 text-muted-foreground/30" />
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
@@ -235,7 +235,7 @@ export default async function TournamentDetailPage({
                                           <div className="flex items-center gap-2">
                                             <span className={`text-sm font-bold ${match.winner_id === match.team1_id ? 'text-emerald-600' : 'text-foreground'}`}>{team1Name}</span>
                                             {isCompleted ? (
-                                              <span className="text-sm font-extrabold text-foreground">{match.score_team1} – {match.score_team2}</span>
+                                              <span className="text-sm font-extrabold text-foreground">{match.score_team1} - {match.score_team2}</span>
                                             ) : (
                                               <Swords className="h-3.5 w-3.5 text-muted-foreground" />
                                             )}

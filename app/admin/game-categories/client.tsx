@@ -129,7 +129,7 @@ function GameModal({ game, onClose, onSaved }: {
                   <Label className="text-xs text-muted-foreground">Scoring Preset</Label>
                   <select value={form.scoring_preset ?? ''} onChange={f('scoring_preset')}
                     className="mt-1 w-full bg-muted/20 border border-border/60 rounded-lg px-3 py-2 text-sm text-foreground">
-                    <option value="">— Pilih preset —</option>
+                    <option value="">-- Pilih preset --</option>
                     <option value="ffim">FFIM Standard (12/9/8/7/6/5/4/3/2/1/0/0)</option>
                     <option value="pmgc">PMGC Style (15/12/10/8/6/4/3/2/1/0/0/0)</option>
                   </select>

@@ -12,5 +12,5 @@ export async function GET() {
   }
 }
 
-// Allow public access (no auth needed — read-only sync)
+// Allow public access (no auth needed - read-only sync)
 export const dynamic = 'force-dynamic'

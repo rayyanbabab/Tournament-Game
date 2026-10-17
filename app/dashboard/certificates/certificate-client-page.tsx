@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { CertificateData } from '@/components/certificate/certificate-canvas'
-import { CertificateDownload } from '@/components/certificate/certificate-download'
-import { Award, Trophy, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { Award, Trophy, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import type { Profile } from '@/lib/types'
@@ -171,8 +170,8 @@ export function CertificateClientPage({ certificates, userName, profile }: Props
               {winners.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-amber-500" />
-                    <h2 className="text-sm font-bold text-foreground">Prestasi Terbaikmu 🎉</h2>
+                    <Award className="h-4 w-4 text-amber-500" />
+                    <h2 className="text-sm font-bold text-foreground">Prestasi Terbaikmu</h2>
                   </div>
                   <div className="space-y-2">
                     {winners.map(c => <CertCard key={c.registrationId} cert={c} />)}

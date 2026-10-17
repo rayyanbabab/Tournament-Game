@@ -95,7 +95,7 @@ export async function generateBracket(tournamentId: string) {
     const matchId = lookup[1][matchNum]
 
     if (!t2 && t1) {
-      // BYE — auto-advance team1
+      // BYE: auto-advance team1
       const nextMatchId = lookup[2]?.[Math.ceil(matchNum / 2)]
       const slot = matchNum % 2 === 1 ? 1 : 2
       await supabase.from('matches').update({

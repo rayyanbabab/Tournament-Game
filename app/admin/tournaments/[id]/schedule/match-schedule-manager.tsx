@@ -102,7 +102,7 @@ function MatchCard({ match, tournamentId }: { match: Match; tournamentId: string
             M{match.match_number}
           </span>
           {isBye ? (
-            <span className="text-sm font-semibold text-muted-foreground">{team1Name} — BYE (auto-lanjut)</span>
+            <span className="text-sm font-semibold text-muted-foreground">{team1Name}: BYE (auto-lanjut)</span>
           ) : (
             <div className="flex items-center gap-3 min-w-0">
               <span className={cn('text-sm font-bold truncate max-w-[120px]', match.winner_id === match.team1_id ? 'text-emerald-600' : 'text-foreground')}>
@@ -110,7 +110,7 @@ function MatchCard({ match, tournamentId }: { match: Match; tournamentId: string
               </span>
               {isCompleted ? (
                 <span className="text-sm font-extrabold text-foreground shrink-0">
-                  {match.score_team1} – {match.score_team2}
+                  {match.score_team1} - {match.score_team2}
                 </span>
               ) : (
                 <Swords className="h-3.5 w-3.5 text-muted-foreground shrink-0" />

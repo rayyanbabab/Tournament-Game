@@ -239,7 +239,7 @@ export default function CreateTournamentPage() {
                   const labels = { leaderboard: '⚡ Leaderboard Mode', bracket: '🔀 Bracket Mode', league: '🏅 League Mode' }
                   return (
                     <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full border', colors[cfg.defaultMode])}>
-                      {labels[cfg.defaultMode]} — auto applied
+                      {labels[cfg.defaultMode]} (otomatis)
                     </span>
                   )
                 })()}
@@ -457,7 +457,7 @@ export default function CreateTournamentPage() {
 
                       {/* Placement grid Rank 1-12 */}
                       <div>
-                        <p className="text-xs font-semibold text-foreground mb-3">Poin Placement (Rank 1–12)</p>
+                        <p className="text-xs font-semibold text-foreground mb-3">Poin Placement (Rank 1-12)</p>
                         <div className="grid grid-cols-3 gap-2">
                           {lbPlacement.map((pts, idx) => (
                             <div key={idx}>
@@ -509,10 +509,10 @@ export default function CreateTournamentPage() {
                   <div className="rounded-xl border border-border/40 bg-muted/10 p-4 space-y-2">
                     <p className="text-xs font-bold text-foreground uppercase tracking-widest">Stage Pipeline</p>
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-violet-500 shrink-0" />Group Stage — {leagueSelected.groups} grup × {Math.round(leagueSlot / leagueSelected.groups)} tim</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />Grand Final — Rank 1-6 · Top 6 lolos</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-sky-500 shrink-0" />Play-ins — Rank 7-12 · Top 6 lolos</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />Playoff — Rank 13-24 · Top 3 lolos</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-primary shrink-0" />Group Stage: {leagueSelected.groups} grup × {Math.round(leagueSlot / leagueSelected.groups)} tim</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />Grand Final: Rank 1-6 · Top 6 lolos</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-sky-500 shrink-0" />Play-ins: Rank 7-12 · Top 6 lolos</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />Playoff: Rank 13-24 · Top 3 lolos</div>
                     </div>
                   </div>
                 )}

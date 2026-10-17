@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { CertificateClientPage } from './certificate-client-page'
 
 export const metadata = {
-  title: 'Sertifikat Saya – GameArena',
+  title: 'Sertifikat Saya | GameArena',
   description: 'Unduh sertifikat digital untuk setiap turnamen yang kamu ikuti',
 }
 
@@ -41,12 +41,12 @@ export default async function MyCertificatesPage() {
   const memberTeamIds = new Set((memberOf ?? []).map((m: any) => m.team_id))
 
   const myRegistrations = (registrations ?? []).filter((reg: any) =>
-    reg.teams.captain_id === user.id || memberTeamIds.has(reg.teams.id)
+    reg.teams && (reg.teams.captain_id === user.id || memberTeamIds.has(reg.teams.id))
   )
 
   // Get results for these tournaments
   const tournamentIds = [...new Set(myRegistrations.map((r: any) => r.tournament_id))]
-  const teamIds = myRegistrations.map((r: any) => r.teams.id)
+  const teamIds = myRegistrations.map((r: any) => r.teams?.id).filter(Boolean)
 
   const { data: results } = await supabase
     .from('tournament_results')
@@ -117,28 +117,30 @@ export default async function MyCertificatesPage() {
     0: 'Peserta',
   }
 
-  const certificates = myRegistrations.map((reg: any) => {
-    const t = reg.tournaments
-    const template = (t.certificate_template as any) ?? {}
-    const rank = resultsMap[t.id]?.[reg.teams.id] ?? 0
+  const certificates = myRegistrations
+    .filter((reg: any) => reg.tournaments && reg.teams)
+    .map((reg: any) => {
+      const t = reg.tournaments
+      const template = (t.certificate_template as any) ?? {}
+      const rank = resultsMap[t.id]?.[reg.teams.id] ?? 0
 
-    return {
-      registrationId: reg.id,
-      teamId: reg.teams.id,
-      teamName: reg.teams.name,
-      tournamentId: t.id,
-      tournamentName: t.name,
-      game: t.game,
-      startDate: format(new Date(t.start_date), 'dd MMM yyyy', { locale: id }),
-      endDate: format(new Date(t.end_date), 'dd MMM yyyy', { locale: id }),
-      prizePool: t.prize_pool,
-      rank,
-      rankLabel: rankLabels[rank] ?? 'Peserta',
-      organizerName: template.organizer_name ?? 'GameArena',
-      primaryColor: template.primary_color ?? '#7c3aed',
-      secondaryColor: template.secondary_color ?? '#a855f7',
-    }
-  })
+      return {
+        registrationId: reg.id,
+        teamId: reg.teams.id,
+        teamName: reg.teams.name,
+        tournamentId: t.id,
+        tournamentName: t.name,
+        game: t.game,
+        startDate: format(new Date(t.start_date), 'dd MMM yyyy', { locale: id }),
+        endDate: format(new Date(t.end_date), 'dd MMM yyyy', { locale: id }),
+        prizePool: t.prize_pool,
+        rank,
+        rankLabel: rankLabels[rank] ?? 'Peserta',
+        organizerName: template.organizer_name ?? 'GameArena',
+        primaryColor: template.primary_color ?? '#2563eb',
+        secondaryColor: template.secondary_color ?? '#1d4ed8',
+      }
+    })
 
   return <CertificateClientPage certificates={certificates} userName={profile?.full_name ?? user.email ?? 'Pengguna'} profile={profile} />
 }

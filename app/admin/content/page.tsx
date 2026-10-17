@@ -67,7 +67,7 @@ export default async function AdminContentPage() {
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.04] overflow-hidden">
             <div className="flex items-center gap-2 px-5 py-4 border-b border-amber-500/20">
               <Flame className="h-4 w-4 text-amber-500" />
-              <h2 className="text-sm font-semibold text-foreground">Mega Banner — Featured Tournament</h2>
+              <h2 className="text-sm font-semibold text-foreground">Mega Banner: Featured Tournament</h2>
             </div>
             <div className="p-5">
               <p className="text-xs text-muted-foreground mb-4">

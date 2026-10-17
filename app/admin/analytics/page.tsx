@@ -155,7 +155,7 @@ export default async function AdminAnalyticsPage() {
                           <Link href={`/admin/tournaments/${t.id}`} className="font-medium text-foreground hover:text-primary transition-colors">{t.name}</Link>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">{t.game}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{t.location || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{t.location || '-'}</td>
                         <td className="px-4 py-3 text-muted-foreground">{t.max_teams}</td>
                         <td className="px-4 py-3 text-muted-foreground">{t.registration_fee || 'Gratis'}</td>
                         <td className="px-4 py-3">

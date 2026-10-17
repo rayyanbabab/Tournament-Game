@@ -61,7 +61,7 @@ export default async function PublicTeamProfilePage({ params }: { params: Promis
       <Navbar />
       <main className="flex-1">
         {/* Hero */}
-        <div className="relative border-b border-border/40 bg-gradient-to-br from-violet-500/10 via-primary/5 to-background py-12">
+        <div className="relative border-b border-border/60 bg-muted/20 py-12">
           <div className="container mx-auto px-4 max-w-5xl">
             <Link href="/teams" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
               <ArrowLeft className="h-3.5 w-3.5" /> Semua Tim
@@ -99,10 +99,10 @@ export default async function PublicTeamProfilePage({ params }: { params: Promis
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Turnamen Diikuti', value: approvedCount, icon: Trophy, color: 'text-blue-500' },
+              { label: 'Turnamen Diikuti', value: approvedCount, icon: Trophy, color: 'text-primary' },
               { label: 'Match Menang',     value: matchWins,     icon: Star,   color: 'text-amber-500' },
               { label: 'Turnamen Menang',  value: tournamentWins,icon: Crown,  color: 'text-emerald-500' },
-              { label: 'Anggota',          value: members?.length ?? 0, icon: Users, color: 'text-violet-500' },
+              { label: 'Anggota',          value: members?.length ?? 0, icon: Users, color: 'text-blue-500' },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="rounded-2xl border border-border/60 bg-card p-5 text-center">
                 <Icon className={`h-5 w-5 mx-auto mb-2 ${color}`} />

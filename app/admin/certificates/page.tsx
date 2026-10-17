@@ -9,7 +9,7 @@ import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 
 export const metadata = {
-  title: 'Kelola Sertifikat – Admin GameArena',
+  title: 'Kelola Sertifikat | Admin GameArena',
   description: 'Generate dan kelola sertifikat digital untuk turnamen',
 }
 

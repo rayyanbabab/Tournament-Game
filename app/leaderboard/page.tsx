@@ -39,10 +39,10 @@ export default async function LeaderboardPage() {
   }
 
   const getRankStyle = (index: number) => {
-    if (index === 0) return 'border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10'
-    if (index === 1) return 'border-gray-400/30 bg-gray-500/5 hover:bg-gray-500/10'
-    if (index === 2) return 'border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10'
-    return 'border-border/60 bg-card hover:bg-muted/30'
+    if (index === 0) return 'border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10'
+    if (index === 1) return 'border-slate-400/40 bg-slate-500/5 hover:bg-slate-500/10'
+    if (index === 2) return 'border-amber-700/40 bg-amber-700/5 hover:bg-amber-700/10'
+    return 'border-border/70 bg-card hover:bg-muted/30'
   }
 
   return (
@@ -79,10 +79,14 @@ export default async function LeaderboardPage() {
                       </Link>
                       <div className="flex items-center gap-1 mt-0.5">
                         <Crown className="h-3 w-3 text-amber-500" />
-                        <Link href={team.captainId ? `/players/${team.captainId}` : '#'}
-                          className="text-[11px] text-muted-foreground hover:text-foreground transition-colors">
-                          {team.captain}
-                        </Link>
+                        {team.captainId ? (
+                          <Link href={`/players/${team.captainId}`}
+                            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors">
+                            {team.captain}
+                          </Link>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground">{team.captain}</span>
+                        )}
                       </div>
                     </div>
                     <div className="shrink-0 text-right">

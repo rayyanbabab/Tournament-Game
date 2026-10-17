@@ -368,10 +368,10 @@ export default function EditTournamentPage({ params }: { params: Promise<{ id: s
                   <div className="rounded-xl border border-border/40 bg-muted/10 p-4 space-y-2">
                     <p className="text-xs font-bold text-foreground uppercase tracking-widest">Stage Pipeline</p>
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-violet-500 shrink-0" />Group Stage — {leagueSelected.groups} grup</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />Grand Final — Top 6</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-sky-500 shrink-0" />Play-ins — Top 6</div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />Playoff — Top 3</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-primary shrink-0" />Group Stage: {leagueSelected.groups} grup</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />Grand Final: Top 6</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-sky-500 shrink-0" />Play-ins: Top 6</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />Playoff: Top 3</div>
                     </div>
                   </div>
                 )}

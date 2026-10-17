@@ -1,15 +1,22 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Button } from '@/components/ui/button'
 import {
-  Trophy, Users, Plus, ArrowRight, Gamepad2,
-  Target, CircleCheck, Loader, AlertCircle,
-  MoreHorizontal, Star, Swords,
-  ChevronRight, Flame,
+  Plus,
+  CreditCard,
+  Activity,
+  Scan,
+  Gift,
+  Trophy,
+  ArrowRight,
+  ExternalLink,
+  MessageCircle,
+  X,
+  Layers,
+  Upload,
+  BarChart3,
+  Video,
 } from 'lucide-react'
-import { format } from 'date-fns'
-import { id } from 'date-fns/locale'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -17,322 +24,216 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-
-  const { data: teams } = await supabase.from('teams')
-    .select('*, team_members(count)').eq('captain_id', user.id)
-
-  const { data: memberTeams } = await supabase.from('team_members')
-    .select('*, teams(*)').eq('user_id', user.id)
-
-  const { data: registrations } = await supabase.from('tournament_registrations')
-    .select('*, tournaments(*), teams(name)')
-    .eq('registered_by', user.id)
-    .order('registered_at', { ascending: false })
-    .limit(8)
-
-  // Upcoming tournaments
-  const { data: upcomingTournaments } = await supabase.from('tournaments')
+  const { data: profile } = await supabase
+    .from('profiles')
     .select('*')
-    .in('status', ['upcoming'])
-    .order('start_date', { ascending: true })
-    .limit(3)
+    .eq('id', user.id)
+    .single()
 
-  const approvedCount = registrations?.filter((r: any) => r.status === 'approved').length || 0
-  const pendingCount  = registrations?.filter((r: any) => r.status === 'pending').length  || 0
+  // Fetch tournaments created by user or registered
+  const { data: userTournaments } = await supabase
+    .from('tournaments')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(10)
 
-  const statusConfig: Record<string, { label: string; icon: any; color: string; bg: string; border: string }> = {
-    pending:   { label: 'Menunggu',   icon: Loader,       color: 'text-amber-500',        bg: 'bg-amber-500/10',        border: 'border-amber-500/20' },
-    approved:  { label: 'Disetujui',  icon: CircleCheck,  color: 'text-emerald-500',      bg: 'bg-emerald-500/10',      border: 'border-emerald-500/20' },
-    rejected:  { label: 'Ditolak',    icon: AlertCircle,  color: 'text-red-500',          bg: 'bg-red-500/10',          border: 'border-red-500/20' },
-    withdrawn: { label: 'Dibatalkan', icon: AlertCircle,  color: 'text-muted-foreground', bg: 'bg-muted/40',            border: 'border-border/40' },
-  }
-
-  const stats = [
-    {
-      title: 'Tim Saya', value: teams?.length || 0,
-      icon: Users, iconBg: 'bg-blue-500/15', iconColor: 'text-blue-500', accent: 'border-l-blue-500',
-      sub: 'Sebagai kapten', href: '/dashboard/teams',
-    },
-    {
-      title: 'Tim Bergabung', value: memberTeams?.length || 0,
-      icon: Gamepad2, iconBg: 'bg-violet-500/15', iconColor: 'text-violet-500', accent: 'border-l-violet-500',
-      sub: 'Sebagai anggota', href: '/dashboard/teams',
-    },
-    {
-      title: 'Turnamen Didaftar', value: registrations?.length || 0,
-      icon: Trophy, iconBg: 'bg-amber-500/15', iconColor: 'text-amber-500', accent: 'border-l-amber-500',
-      sub: 'Total pendaftaran', href: '/tournaments',
-    },
-    {
-      title: 'Disetujui', value: approvedCount,
-      icon: CircleCheck, iconBg: 'bg-emerald-500/15', iconColor: 'text-emerald-500', accent: 'border-l-emerald-500',
-      sub: pendingCount > 0 ? `${pendingCount} menunggu review` : 'Tidak ada yang pending', href: '/tournaments',
-    },
-  ]
-
-  const firstName = profile?.full_name?.split(' ')[0] || 'Gamer'
+  const activeTournamentsCount = userTournaments?.filter((t: any) => t.status === 'upcoming' || t.status === 'ongoing').length || 0
+  const totalScansMonth = 0 // In future connected to scan logs table
+  const remainingAiCredits = (profile as any)?.ai_credits ?? 5
+  const userPlan = (profile as any)?.subscription_tier || 'PAKET GRATIS'
+  const displayName = profile?.full_name?.toUpperCase() || profile?.email?.split('@')[0]?.toUpperCase() || 'USER'
 
   return (
-    <main className="flex-1 p-4 md:p-6 space-y-6 pt-16 md:pt-6">
+    <main className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-8 select-none">
+      {/* ── 1. WHATSAPP CHANNEL BANNER ── */}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-zinc-100 shadow-sm relative">
+        <div className="flex items-center gap-3.5">
+          <div className="h-10 w-10 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 text-emerald-400">
+            <MessageCircle className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-white tracking-tight">
+              Saluran WhatsApp GridPlay
+            </h4>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Info rilis, perubahan fitur, dan jadwal komunitas.
+            </p>
+          </div>
+        </div>
 
-          {/* ── WELCOME BANNER ── */}
-          <div className="relative rounded-2xl overflow-hidden border border-primary/20 bg-gradient-to-br from-primary/10 via-violet-500/5 to-card p-6 md:p-8">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px]" />
-            <div className="absolute top-4 right-6 opacity-10">
-              <Gamepad2 className="h-24 w-24 text-primary" />
+        <div className="flex items-center gap-3 shrink-0">
+          <a
+            href="https://chat.whatsapp.com"
+            target="_blank"
+            rel="noreferrer"
+            className="px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-zinc-950 hover:bg-zinc-200 transition-all shadow-sm"
+          >
+            Gabung
+          </a>
+        </div>
+      </div>
+
+      {/* ── 2. HEADER GREETING & CTA ── */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-2">
+        <div className="space-y-1">
+          <p className="text-[11px] font-mono tracking-widest text-zinc-500 uppercase">
+            {displayName} · {userPlan}
+          </p>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            {activeTournamentsCount > 0 ? 'Turnamen Aktif.' : 'Belum ada yang berjalan.'}
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {activeTournamentsCount > 0
+              ? 'Kelola match, scan screenshot, dan perbarui klasemen secara langsung.'
+              : 'Semua turnamen sudah beres, atau belum ada yang dimulai.'}
+          </p>
+        </div>
+
+        <Link
+          href="/dashboard/create-tournament"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-foreground text-background hover:opacity-90 transition-all shadow-sm shrink-0"
+        >
+          <Plus className="h-4 w-4" />
+          Turnamen baru
+        </Link>
+      </div>
+
+      {/* ── 3. STATS METRICS CARDS ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Card 1: Saldo Kredit Scan */}
+        <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 flex flex-col justify-between min-h-[140px] space-y-4">
+          <div className="flex items-center justify-between text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
+            <span>SALDO KREDIT SCAN</span>
+          </div>
+          <div>
+            <div className="text-4xl font-extrabold font-mono text-foreground tracking-tight">
+              {remainingAiCredits}
             </div>
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Flame className="h-4 w-4 text-amber-400" />
-                  <span className="text-xs font-semibold text-amber-400 uppercase tracking-widest">Player Dashboard</span>
-                </div>
-                <h1 className="text-2xl font-extrabold text-foreground tracking-tight">
-                  Hei, {firstName}! 👾
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {registrations?.length
-                    ? `Kamu sudah mendaftar ${registrations.length} turnamen. Terus semangat!`
-                    : 'Belum ada turnamen yang kamu ikuti. Yuk mulai bertanding!'}
-                </p>
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <Button asChild variant="outline" size="sm" className="h-9 gap-2">
-                  <Link href="/dashboard/teams/create">
-                    <Users className="h-3.5 w-3.5" />
-                    Buat Tim
-                  </Link>
-                </Button>
-                <Button asChild size="sm" className="h-9 gap-2 shadow-md shadow-primary/20">
-                  <Link href="/tournaments">
-                    <Trophy className="h-3.5 w-3.5" />
-                    Cari Turnamen
-                  </Link>
-                </Button>
-              </div>
+            <Link
+              href="/dashboard/billing"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground mt-3 transition-colors"
+            >
+              <CreditCard className="h-3 w-3 text-muted-foreground" />
+              Kelola tagihan & kredit
+            </Link>
+          </div>
+        </div>
+
+        {/* Card 2: Turnamen Aktif */}
+        <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 flex flex-col justify-between min-h-[140px] space-y-4">
+          <div className="flex items-center justify-between text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
+            <span>TURNAMEN AKTIF</span>
+            <Activity className="h-4 w-4 opacity-50" />
+          </div>
+          <div className="text-4xl font-extrabold font-mono text-foreground tracking-tight">
+            {activeTournamentsCount}
+          </div>
+        </div>
+
+        {/* Card 3: Screenshot Bulan Ini */}
+        <div className="rounded-3xl border border-border/80 bg-card p-5 sm:p-6 flex flex-col justify-between min-h-[140px] space-y-4">
+          <div className="flex items-center justify-between text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
+            <span>SCREENSHOT BULAN INI</span>
+            <Scan className="h-4 w-4 opacity-50" />
+          </div>
+          <div className="text-4xl font-extrabold font-mono text-foreground tracking-tight">
+            {totalScansMonth}
+          </div>
+        </div>
+      </div>
+
+      {/* ── 4. DAILY MISSION BANNER ── */}
+      <Link
+        href="/dashboard/missions"
+        className="flex items-center justify-between p-4 rounded-2xl border border-border/70 bg-muted/30 hover:bg-muted/60 text-xs font-medium text-foreground transition-all group"
+      >
+        <div className="flex items-center gap-2.5">
+          <Gift className="h-4 w-4 text-amber-500" />
+          <span>Misi harian — klaim bonus kredit scan gratis</span>
+        </div>
+        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+      </Link>
+
+      {/* ── 5. TURNAMENMU SECTION ── */}
+      <div className="space-y-4 pt-2">
+        <h3 className="text-base font-bold text-foreground tracking-tight">
+          Turnamenmu
+        </h3>
+
+        {(!userTournaments || userTournaments.length === 0) ? (
+          /* Empty State matching GridPlay exactly */
+          <div className="rounded-3xl border border-border/80 bg-card/60 p-12 sm:p-16 text-center space-y-4">
+            <div className="h-12 w-12 rounded-2xl bg-muted border border-border flex items-center justify-center mx-auto text-muted-foreground">
+              <Layers className="h-6 w-6" />
+            </div>
+            <div className="space-y-1 max-w-sm mx-auto">
+              <h4 className="text-sm font-bold text-foreground">Belum ada turnamen</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Buat turnamen pertama, tambahkan tim, lalu biarkan poin dan klasemen dihitung sendiri.
+              </p>
+            </div>
+            <div className="pt-2">
+              <Link
+                href="/dashboard/create-tournament"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-foreground text-background hover:opacity-90 transition-all shadow-sm"
+              >
+                <Plus className="h-4 w-4" />
+                Buat turnamen
+              </Link>
             </div>
           </div>
-
-          {/* ── STAT CARDS ── */}
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            {stats.map((stat, i) => {
-              const Icon = stat.icon
-              return (
-                <Link key={i} href={stat.href}
-                  className={`rounded-xl border border-border/60 border-l-2 ${stat.accent} bg-card p-5 hover:shadow-md hover:border-border transition-all duration-200 group`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`h-9 w-9 rounded-lg ${stat.iconBg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                      <Icon className={`h-4.5 w-4.5 ${stat.iconColor}`} style={{height:'18px', width:'18px'}} />
-                    </div>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/30 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
+        ) : (
+          /* List of tournaments */
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {userTournaments.map((t: any) => (
+              <div
+                key={t.id}
+                className="rounded-3xl border border-border/80 bg-card p-6 space-y-5 hover:border-foreground/30 transition-all"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-muted border border-border text-muted-foreground uppercase">
+                      BATTLE ROYALE · {t.game || 'FREE FIRE'}
+                    </span>
+                    <h4 className="text-base font-bold text-foreground mt-2">
+                      {t.name}
+                    </h4>
+                    <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                      Status: {t.status || 'Active'} · {t.max_teams || 12} Tim
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-1">{stat.title}</p>
-                  <p className="text-3xl font-extrabold text-foreground tracking-tight tabular-nums leading-none">{stat.value}</p>
-                  <p className="text-[11px] text-muted-foreground mt-2 truncate">{stat.sub}</p>
-                </Link>
-              )
-            })}
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse mt-1" />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/60">
+                  <Link
+                    href={`/ocr`}
+                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-foreground text-background hover:opacity-90 transition-all flex items-center gap-1.5"
+                  >
+                    <Upload className="h-3 w-3" />
+                    Upload Hasil Match
+                  </Link>
+                  <Link
+                    href="/ocr"
+                    className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-background hover:bg-muted text-foreground transition-all flex items-center gap-1.5"
+                  >
+                    <BarChart3 className="h-3 w-3" />
+                    Lihat Klasemen
+                  </Link>
+                  <Link
+                    href="/overlay"
+                    target="_blank"
+                    className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all flex items-center gap-1.5"
+                  >
+                    <Video className="h-3 w-3" />
+                    Overlay
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
-
-          {/* ── UPCOMING TOURNAMENTS ── */}
-          {upcomingTournaments && upcomingTournaments.length > 0 && (
-            <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
-                <div className="flex items-center gap-2">
-                  <Swords className="h-4 w-4 text-primary" />
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">Turnamen Mendatang</h2>
-                    <p className="text-xs text-muted-foreground">Segera daftar sebelum slot habis!</p>
-                  </div>
-                </div>
-                <Button asChild variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
-                  <Link href="/tournaments">Lihat Semua <ArrowRight className="h-3.5 w-3.5" /></Link>
-                </Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/40">
-                {upcomingTournaments.map((t: any) => (
-                  <Link key={t.id} href={`/tournaments/${t.id}`}
-                    className="flex flex-col gap-2 px-5 py-4 hover:bg-muted/20 transition-colors group">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-semibold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">{t.game}</span>
-                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
-                    </div>
-                    <p className="text-sm font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{t.name}</p>
-                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                      <span>{format(new Date(t.start_date), 'dd MMM yyyy', { locale: id })}</span>
-                      {t.prize_pool && (
-                        <span className="flex items-center gap-0.5 text-amber-500 font-semibold">
-                          <Trophy className="h-3 w-3" />{t.prize_pool}
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── TABLES ROW ── */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
-
-            {/* My Teams */}
-            <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">Tim Saya</h2>
-                    <p className="text-xs text-muted-foreground">Tim yang Anda kelola sebagai kapten</p>
-                  </div>
-                </div>
-                <Button asChild variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
-                  <Link href="/dashboard/teams/create">
-                    <Plus className="h-3.5 w-3.5" /> Buat Tim
-                  </Link>
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-5 py-2 border-b border-border/40 bg-muted/20">
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Nama Tim</span>
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-20 text-center">Anggota</span>
-                <span className="w-7" />
-              </div>
-
-              {teams && teams.length > 0 ? (
-                <div className="divide-y divide-border/40">
-                  {teams.map((team: any) => (
-                    <Link key={team.id} href={`/dashboard/teams/${team.id}`}
-                      className="grid grid-cols-[1fr_auto_auto] gap-3 items-center px-5 py-3 hover:bg-muted/20 transition-colors group">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0 overflow-hidden">
-                          {team.logo_url ? (
-                            <img src={team.logo_url} alt={team.name} className="h-full w-full object-cover" />
-                          ) : (
-                            <span className="text-xs font-bold text-blue-500">{team.name[0].toUpperCase()}</span>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{team.name}</p>
-                          <p className="text-[10px] text-muted-foreground">Kapten</p>
-                        </div>
-                      </div>
-                      <div className="w-20 flex justify-center">
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Users className="h-3 w-3" />
-                          {team.team_members?.[0]?.count || 0}
-                        </span>
-                      </div>
-                      <div className="w-7 flex justify-end">
-                        <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/30 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-14 text-center gap-2">
-                  <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-blue-500/40" />
-                  </div>
-                  <p className="text-sm font-medium text-foreground">Belum ada tim</p>
-                  <p className="text-xs text-muted-foreground">Buat tim pertama Anda untuk mulai berkompetisi</p>
-                  <Button asChild size="sm" className="mt-2 h-8 text-xs gap-1.5">
-                    <Link href="/dashboard/teams/create">
-                      <Plus className="h-3.5 w-3.5" /> Buat Tim Pertama
-                    </Link>
-                  </Button>
-                </div>
-              )}
-
-              {teams && teams.length > 0 && (
-                <div className="flex items-center justify-between px-5 py-3 border-t border-border/40 bg-muted/10">
-                  <p className="text-xs text-muted-foreground">{teams.length} tim ditampilkan</p>
-                  <Link href="/dashboard/teams" className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
-                    Kelola tim <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Registrations */}
-            <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-primary" />
-                  <div>
-                    <h2 className="text-sm font-semibold text-foreground">Pendaftaran Turnamen</h2>
-                    <p className="text-xs text-muted-foreground">Status pendaftaran tim Anda</p>
-                  </div>
-                </div>
-                <Button asChild variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground">
-                  <Link href="/tournaments">Cari Turnamen <ArrowRight className="h-3.5 w-3.5" /></Link>
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-5 py-2 border-b border-border/40 bg-muted/20">
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Turnamen / Tim</span>
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-24 text-center">Status</span>
-                <span className="w-7" />
-              </div>
-
-              {registrations && registrations.length > 0 ? (
-                <div className="divide-y divide-border/40">
-                  {registrations.map((reg: any) => {
-                    const cfg = statusConfig[reg.status]
-                    const StatusIcon = cfg?.icon
-                    return (
-                      <div key={reg.id} className="grid grid-cols-[1fr_auto_auto] gap-3 items-center px-5 py-3 hover:bg-muted/20 transition-colors">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="h-8 w-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-                            <Trophy className="h-3.5 w-3.5 text-amber-500" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{reg.tournaments?.name}</p>
-                            <p className="text-[10px] text-muted-foreground">{reg.tournaments?.game} • {reg.teams?.name}</p>
-                          </div>
-                        </div>
-                        <div className="w-24 flex justify-center">
-                          {cfg && (
-                            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${cfg.bg} ${cfg.border} ${cfg.color}`}>
-                              <StatusIcon className="h-2.5 w-2.5" />
-                              {cfg.label}
-                            </span>
-                          )}
-                        </div>
-                        <div className="w-7 flex justify-end">
-                          <button className="h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
-                            <MoreHorizontal className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-14 text-center gap-2">
-                  <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
-                    <Target className="h-6 w-6 text-amber-500/40" />
-                  </div>
-                  <p className="text-sm font-medium text-foreground">Belum ada pendaftaran</p>
-                  <p className="text-xs text-muted-foreground">Jelajahi turnamen dan daftarkan tim Anda</p>
-                  <Button asChild size="sm" className="mt-2 h-8 text-xs gap-1.5">
-                    <Link href="/tournaments">
-                      <Trophy className="h-3.5 w-3.5" /> Jelajahi Turnamen
-                    </Link>
-                  </Button>
-                </div>
-              )}
-
-              {registrations && registrations.length > 0 && (
-                <div className="flex items-center justify-between px-5 py-3 border-t border-border/40 bg-muted/10">
-                  <p className="text-xs text-muted-foreground">{registrations.length} pendaftaran ditampilkan</p>
-                  <Link href="/tournaments" className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
-                    Lihat turnamen <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
+        )}
+      </div>
     </main>
   )
 }

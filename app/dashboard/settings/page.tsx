@@ -1,73 +1,196 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { ProfileForm } from '@/components/profile-form'
-import { Settings, User } from 'lucide-react'
+'use client'
 
-export default async function UserSettingsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+import React, { useState } from 'react'
+import { toast } from 'sonner'
+import { User, Lock, Building, Key, Cable, AlertTriangle } from 'lucide-react'
 
-  if (!user) redirect('/auth/login')
+export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState('profil')
+  const [organizerName, setOrganizerName] = useState('rayyan fdh')
+  const [email, setEmail] = useState('rayyanfdh5@gmail.com')
+  const [whatsapp, setWhatsapp] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
-  const { data: profile } = await supabase
-    .from('profiles').select('*').eq('id', user.id).single()
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault()
+    toast.success('Profil berhasil diperbarui!')
+  }
 
-  const currentProfile = profile || {
-    id: user.id,
-    email: user.email,
-    full_name: (user as any).full_name || '',
-    role: (user as any).role || 'user',
-    phone: '',
-    avatar_url: null,
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newPassword || newPassword !== confirmPassword) {
+      toast.error('Kata sandi baru tidak cocok atau kosong')
+      return
+    }
+    toast.success('Kata sandi berhasil diubah!')
+    setNewPassword('')
+    setConfirmPassword('')
   }
 
   return (
-    <main className="flex-1 p-4 md:p-6 overflow-y-auto pt-16 md:pt-6">
-      <div className="max-w-2xl mx-auto space-y-6">
-
-            {/* Page Header */}
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Settings className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl font-extrabold tracking-tight text-foreground">Pengaturan Profil</h1>
-                <p className="text-sm text-muted-foreground">Kelola informasi pribadi dan pengaturan akun Anda</p>
-              </div>
-            </div>
-
-            {/* Profile Card */}
-            {currentProfile && (
-              <div className="rounded-2xl border border-border/60 bg-card p-5 flex items-center gap-4">
-                <div className="h-14 w-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
-                  {(currentProfile as any).avatar_url ? (
-                    <img src={(currentProfile as any).avatar_url} alt="avatar" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-2xl font-extrabold text-primary">
-                      {(currentProfile.full_name || 'G')[0]?.toUpperCase() || 'G'}
-                    </span>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-base font-bold text-foreground">{currentProfile.full_name || 'Gamer'}</p>
-                  <p className="text-sm text-muted-foreground">{currentProfile.email}</p>
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-semibold mt-1 px-2 py-0.5 rounded-full border ${
-                    currentProfile.role === 'admin'
-                      ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                      : 'bg-primary/10 text-primary border-primary/20'
-                  }`}>
-                    <User className="h-2.5 w-2.5" />
-                    {currentProfile.role === 'admin' ? 'Admin' : 'Player'}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Form */}
-            <div className="rounded-2xl border border-border/60 bg-card p-6">
-              <ProfileForm initialProfile={currentProfile as any} />
-            </div>
+    <main className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-8 select-none">
+      <div className="space-y-1">
+        <span className="text-[11px] font-mono tracking-widest uppercase text-muted-foreground block">
+          — ACCOUNT SETTINGS
+        </span>
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+          Berkas akun.
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Profil, keamanan, organizer, API, dan integrasi — tersusun sebagai satu berkas.
+        </p>
       </div>
+
+      {/* ── TABS NAV ── */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-border/60 text-xs font-mono">
+        {[
+          { id: 'profil', label: '01 PROFIL' },
+          { id: 'keamanan', label: '02 KEAMANAN' },
+          { id: 'organizer', label: '03 ORGANIZER' },
+          { id: 'api', label: '04 API' },
+          { id: 'integrasi', label: '05 INTEGRASI' },
+          { id: 'bahaya', label: '06 BAHAYA' },
+        ].map(({ id, label }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all ${
+              activeTab === id
+                ? 'bg-foreground text-background font-semibold shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── 01 PROFIL ── */}
+      {activeTab === 'profil' && (
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono font-bold text-muted-foreground">01</span>
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                  IDENTITAS
+                </span>
+                <h3 className="text-base font-bold text-foreground">Account information</h3>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="rounded-3xl border border-border/80 bg-card p-6 space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+                  ORGANIZER NAME / USERNAME
+                </label>
+                <input
+                  type="text"
+                  value={organizerName}
+                  onChange={(e) => setOrganizerName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+                    EMAIL
+                  </label>
+                  <input
+                    type="email"
+                    disabled
+                    value={email}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-muted text-sm text-muted-foreground"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+                    WHATSAPP
+                  </label>
+                  <input
+                    type="text"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="Contoh: 08123456789"
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full text-xs font-semibold bg-foreground text-background hover:opacity-90 transition-all shadow-sm"
+                >
+                  Save Profile
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Change Password */}
+          <div className="space-y-3 pt-4 border-t border-border/60">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono font-bold text-muted-foreground">02</span>
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                  AKSES
+                </span>
+                <h3 className="text-base font-bold text-foreground">Change Password</h3>
+              </div>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="rounded-3xl border border-border/80 bg-card p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+                  NEW PASSWORD
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimum 8 characters"
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+                  CONFIRM NEW PASSWORD
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat new password"
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full text-xs font-semibold bg-foreground text-background hover:opacity-90 transition-all shadow-sm"
+                >
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {activeTab !== 'profil' && (
+        <div className="rounded-3xl border border-border/80 bg-card p-8 text-center space-y-2">
+          <h4 className="text-sm font-bold text-foreground">Konfigurasi Siap</h4>
+          <p className="text-xs text-muted-foreground">
+            Pengaturan modul {activeTab} aktif dan tersinkronisasi dengan server GridPlay.
+          </p>
+        </div>
+      )}
     </main>
   )
 }

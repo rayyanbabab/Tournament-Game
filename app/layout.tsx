@@ -16,9 +16,10 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'GameArena - Tournament Platform',
-  description: 'Platform pendaftaran turnamen game online terbaik. Daftar, buat tim, dan berkompetisi!',
-  generator: 'v0.app',
+  title: 'GridPlay — Hitung Poin Turnamen Free Fire Otomatis & Klasemen FF',
+  description:
+    'Platform hitung poin turnamen Free Fire otomatis dari screenshot hasil pertandingan. Papan skor leaderboard instan, cetak sertifikat juara, dan manajemen turnamen resmi.',
+  generator: 'GridPlay',
   icons: {
     icon: [
       {

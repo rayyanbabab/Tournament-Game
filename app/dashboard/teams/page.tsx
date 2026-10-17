@@ -80,7 +80,7 @@ export default async function DashboardTeamsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {myTeams.map((team: any) => (
                   <Link key={team.id} href={`/dashboard/teams/${team.id}`}
-                    className="group rounded-2xl border border-border/60 border-l-2 border-l-amber-500 bg-card p-5 hover:shadow-lg hover:border-amber-500/40 transition-all duration-200">
+                    className="group rounded-xl border border-border/70 bg-card p-5 hover:border-border hover:bg-muted/10 transition-colors">
                     <div className="flex items-start justify-between mb-4">
                       <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
                         {team.logo_url ? (
@@ -149,7 +149,7 @@ export default async function DashboardTeamsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {memberTeams.map((member: any) => (
                   <Link key={member.id} href={`/dashboard/teams/${member.teams.id}`}
-                    className="group rounded-2xl border border-border/60 border-l-2 border-l-blue-500 bg-card p-5 hover:shadow-lg hover:border-blue-500/40 transition-all duration-200">
+                    className="group rounded-xl border border-border/70 bg-card p-5 hover:border-border hover:bg-muted/10 transition-colors">
                     <div className="flex items-start justify-between mb-4">
                       <div className="h-12 w-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
                         {member.teams.logo_url ? (

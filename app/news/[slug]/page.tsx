@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const supabase = await createClient()
   const { data } = await supabase.from('news_articles').select('title, excerpt').eq('slug', slug).single()
   return {
-    title: data ? `${data.title} — GameArena` : 'Artikel tidak ditemukan',
+    title: data ? `${data.title} | GameArena` : 'Artikel tidak ditemukan',
     description: data?.excerpt,
   }
 }

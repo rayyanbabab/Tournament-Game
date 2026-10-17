@@ -6,9 +6,9 @@ import { Badge } from '@/components/ui/badge'
 import {
   Trophy, Users, Calendar, Plus, ArrowRight, Gamepad2,
   CheckCircle2, AlertCircle, Search, MoreHorizontal,
-  Loader, CircleCheck, TrendingUp, Bell, Zap,
+  Loader, CircleCheck, TrendingUp, Bell,
   ClipboardList, Banknote, LayoutTemplate, Settings,
-  ChevronRight, Activity,
+  ChevronRight, Activity, ArrowLeft,
 } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { format, formatDistanceToNow } from 'date-fns'
@@ -77,52 +77,40 @@ export default async function AdminDashboardPage() {
       title: 'Total Turnamen',
       value: totalTournaments || 0,
       icon: Trophy,
-      iconBg: 'bg-amber-500/15',
-      iconColor: 'text-amber-500',
-      accent: 'border-l-amber-500',
+      iconBg: 'bg-amber-500/10 text-amber-500',
       badge: `${activeTournaments || 0} aktif`,
       badgeColor: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
       sub: `${activeTournaments || 0} sedang berjalan`,
-      trend: '+2 bulan ini',
     },
     {
       title: 'Tim Terdaftar',
       value: totalTeams || 0,
       icon: Users,
-      iconBg: 'bg-blue-500/15',
-      iconColor: 'text-blue-500',
-      accent: 'border-l-blue-500',
+      iconBg: 'bg-blue-500/10 text-blue-500',
       badge: `${totalRegistrations || 0} registrasi`,
       badgeColor: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
       sub: `Total ${totalRegistrations || 0} pendaftaran`,
-      trend: 'Total keseluruhan',
     },
     {
       title: 'Total Pengguna',
       value: totalUsers || 0,
       icon: Gamepad2,
-      iconBg: 'bg-violet-500/15',
-      iconColor: 'text-violet-500',
-      accent: 'border-l-violet-500',
+      iconBg: 'bg-primary/10 text-primary',
       badge: `${pendingRegistrations || 0} pending`,
       badgeColor: (pendingRegistrations || 0) > 0
         ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
         : 'bg-muted text-muted-foreground border-border',
       sub: `${pendingRegistrations || 0} menunggu review`,
-      trend: 'Akun terdaftar',
     },
     {
       title: 'Tingkat Persetujuan',
       value: approvalRate,
       valueSuffix: '%',
       icon: TrendingUp,
-      iconBg: 'bg-emerald-500/15',
-      iconColor: 'text-emerald-500',
-      accent: 'border-l-emerald-500',
+      iconBg: 'bg-emerald-500/10 text-emerald-500',
       badge: `${approvedRegistrations || 0} disetujui`,
       badgeColor: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
       sub: `${rejectedRegistrations || 0} ditolak`,
-      trend: 'Dari total masuk',
     },
   ]
 
@@ -133,26 +121,32 @@ export default async function AdminDashboardPage() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* ── TOP BAR ── */}
-        <header className="hidden md:flex sticky top-0 z-30 h-14 items-center justify-between border-b border-border/60 bg-background/95 backdrop-blur-sm px-6 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 h-8 px-3 rounded-lg border border-border/60 bg-muted/30 text-sm text-muted-foreground w-60 cursor-pointer hover:border-border transition-colors">
-              <Search className="h-3.5 w-3.5 shrink-0" />
-              <span className="text-xs flex-1">Cari turnamen, tim...</span>
-              <kbd className="text-[10px] border border-border/60 rounded px-1.5 py-0.5 bg-background font-mono text-muted-foreground">⌘K</kbd>
-            </div>
+        <header className="hidden md:flex sticky top-0 z-30 h-14 items-center justify-between border-b border-border/70 bg-background/90 backdrop-blur-md px-6 shrink-0">
+          <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+            <span className="font-bold text-foreground">GP</span>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-amber-500 font-semibold tracking-wider">ADMIN OS</span>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-foreground uppercase tracking-wider font-semibold">OVERVIEW</span>
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="px-3 py-1 rounded-full text-xs font-medium border border-border bg-background hover:bg-muted text-foreground transition-all flex items-center gap-1.5"
+            >
+              <ArrowLeft className="h-3 w-3 text-emerald-400" />
+              Tournament OS (User)
+            </Link>
             {(pendingRegistrations || 0) > 0 && (
-              <Link href="/admin/registrations" className="flex items-center gap-1.5 text-xs font-medium text-amber-600 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg hover:bg-amber-500/15 transition-colors">
+              <Link href="/admin/registrations" className="flex items-center gap-1.5 text-xs font-medium text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full hover:bg-amber-500/20 transition-colors">
                 <Bell className="h-3.5 w-3.5" />
-                {pendingRegistrations} pendaftaran menunggu
+                {pendingRegistrations} pending
               </Link>
             )}
-            <Link href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Situs</Link>
             <ThemeToggle size="sm" />
-            <div className="h-7 w-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">{profile?.full_name?.[0]?.toUpperCase() ?? 'A'}</span>
+            <div className="h-7 w-7 rounded-full bg-foreground text-background flex items-center justify-center font-bold text-xs">
+              {profile?.full_name?.[0]?.toUpperCase() ?? 'A'}
             </div>
           </div>
         </header>
@@ -160,23 +154,25 @@ export default async function AdminDashboardPage() {
         <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto pt-16 md:pt-6">
 
           {/* ── PAGE HEADER ── */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_2px_rgba(52,211,153,0.5)]" />
-                <span className="text-xs font-medium text-emerald-500 uppercase tracking-widest">Live</span>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-mono font-bold text-emerald-500 uppercase tracking-widest">GRIDPLAY ADMIN OS · LIVE SYSTEM</span>
               </div>
-              <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Admin Dashboard</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Selamat datang kembali, <span className="font-semibold text-foreground">{profile?.full_name ?? 'Admin'}</span>
+              <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Platform Overview</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Selamat datang, <span className="font-semibold text-foreground">{profile?.full_name ?? 'Super Admin'}</span>. Pantau turnamen, pengguna, dan transaksi platform di sini.
               </p>
             </div>
-            <Button asChild size="sm" className="h-9 gap-2 px-4 shadow-md shadow-primary/20 shrink-0">
-              <Link href="/admin/tournaments/create">
-                <Plus className="h-4 w-4" />
-                Buat Turnamen
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button asChild size="sm" className="rounded-full h-9 gap-2 px-5 shadow-sm">
+                <Link href="/admin/tournaments/create">
+                  <Plus className="h-4 w-4" />
+                  Buat Turnamen
+                </Link>
+              </Button>
+            </div>
           </div>
 
           {/* ── PENDING ALERT ── */}
@@ -191,7 +187,7 @@ export default async function AdminDashboardPage() {
                   <p className="text-sm font-semibold text-foreground">
                     {pendingRegistrations} Pendaftaran Menunggu Persetujuan
                   </p>
-                  <p className="text-xs text-muted-foreground">Klik untuk review dan tindak lanjut segera</p>
+                  <p className="text-xs text-muted-foreground">Klik untuk review dan verifikasi tim pendaftar</p>
                 </div>
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all" />
@@ -203,23 +199,23 @@ export default async function AdminDashboardPage() {
             {stats.map((stat, i) => {
               const Icon = stat.icon
               return (
-                <div key={i} className={`rounded-xl border border-border/60 border-l-2 ${stat.accent} bg-card p-5 hover:shadow-md transition-all duration-200`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`h-9 w-9 rounded-lg ${stat.iconBg} flex items-center justify-center`}>
-                      <Icon className={`h-4.5 w-4.5 ${stat.iconColor}`} style={{height:'18px', width:'18px'}} />
+                <div key={i} className="rounded-xl border border-border bg-card p-5 hover:border-border/80 transition-all duration-150">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`h-8 w-8 rounded-lg ${stat.iconBg} flex items-center justify-center`}>
+                      <Icon className="h-4 w-4" />
                     </div>
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${stat.badgeColor} hidden sm:inline-flex items-center`}>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${stat.badgeColor} hidden sm:inline-flex items-center`}>
                       {stat.badge}
                     </span>
                   </div>
                   <div className="mb-1">
-                    <p className="text-xs text-muted-foreground mb-1">{stat.title}</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{stat.title}</p>
                     <div className="flex items-end gap-0.5">
-                      <span className="text-3xl font-extrabold text-foreground tracking-tight tabular-nums leading-none">
+                      <span className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight tabular-nums leading-none">
                         {stat.value.toLocaleString()}
                       </span>
                       {(stat as any).valueSuffix && (
-                        <span className="text-xl font-bold text-muted-foreground mb-0.5">{(stat as any).valueSuffix}</span>
+                        <span className="text-lg font-bold text-muted-foreground mb-0.5">{(stat as any).valueSuffix}</span>
                       )}
                     </div>
                   </div>
@@ -236,38 +232,38 @@ export default async function AdminDashboardPage() {
             <RegistrationStatusChart data={registrationStatusData} />
 
             {/* Quick Actions */}
-            <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
-              <div className="flex items-center gap-2 px-5 py-4 border-b border-border/60">
-                <Zap className="h-4 w-4 text-primary" />
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3.5 border-b border-border/60 bg-muted/15">
+                <ClipboardList className="h-4 w-4 text-primary" />
                 <div>
-                  <h2 className="text-sm font-semibold text-foreground">Akses Cepat</h2>
-                  <p className="text-xs text-muted-foreground">Navigasi ke halaman manajemen</p>
+                  <h2 className="text-sm font-bold text-foreground">Akses Manajemen Cepat</h2>
+                  <p className="text-[11px] text-muted-foreground">Navigasi langsung ke modul turnamen</p>
                 </div>
               </div>
               <div className="p-4 grid grid-cols-2 gap-3">
                 {[
-                  { href: '/admin/registrations', label: 'Pendaftaran', desc: 'Review & setujui', icon: ClipboardList, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20', count: pendingRegistrations || 0 },
-                  { href: '/admin/payments', label: 'Pembayaran', desc: 'Verifikasi bukti', icon: Banknote, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', count: null },
-                  { href: '/admin/content', label: 'Edit Konten', desc: 'Landing page', icon: LayoutTemplate, color: 'text-violet-500', bg: 'bg-violet-500/10', border: 'border-violet-500/20', count: null },
-                  { href: '/admin/tournaments/create', label: 'Buat Turnamen', desc: 'Tambah baru', icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20', count: null },
+                  { href: '/admin/registrations', label: 'Pendaftaran', desc: 'Review & setujui tim', icon: ClipboardList, count: pendingRegistrations || 0 },
+                  { href: '/admin/payments', label: 'Pembayaran', desc: 'Verifikasi slip bukti', icon: Banknote, count: null },
+                  { href: '/admin/tournaments', label: 'Kelola Turnamen', desc: 'Edit jadwal & bagan', icon: Trophy, count: null },
+                  { href: '/admin/tournaments/create', label: 'Buat Turnamen', desc: 'Rilis kompetisi baru', icon: Plus, count: null },
                 ].map((item) => {
                   const Icon = item.icon
                   return (
-                    <a key={item.href} href={item.href}
-                      className={`relative flex flex-col gap-2.5 p-3.5 rounded-xl border ${item.border} bg-gradient-to-br from-card to-muted/10 hover:shadow-md transition-all group`}>
-                      <div className={`h-8 w-8 rounded-lg ${item.bg} border ${item.border} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                        <Icon className={`h-4 w-4 ${item.color}`} />
+                    <Link key={item.href} href={item.href}
+                      className="relative flex flex-col gap-2 p-3.5 rounded-lg border border-border bg-muted/20 hover:bg-muted/40 hover:border-primary/40 transition-all group">
+                      <div className="h-7 w-7 rounded bg-primary/10 text-primary flex items-center justify-center">
+                        <Icon className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-foreground">{item.label}</p>
+                        <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">{item.label}</p>
                         <p className="text-[10px] text-muted-foreground mt-0.5">{item.desc}</p>
                       </div>
                       {(item.count ?? 0) > 0 && (
-                        <span className="absolute top-2.5 right-2.5 h-4 min-w-4 px-1 bg-amber-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                        <span className="absolute top-2.5 right-2.5 h-4 min-w-4 px-1 bg-amber-500 text-slate-950 text-[9px] font-bold rounded-full flex items-center justify-center">
                           {item.count}
                         </span>
                       )}
-                    </a>
+                    </Link>
                   )
                 })}
               </div>

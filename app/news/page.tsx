@@ -6,7 +6,7 @@ import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { Newspaper, Calendar, Tag, ArrowRight, Search } from 'lucide-react'
 
-export const metadata = { title: 'Berita & Pengumuman — GameArena' }
+export const metadata = { title: 'Berita & Pengumuman | GameArena' }
 
 export default async function NewsPage() {
   const supabase = await createClient()
@@ -26,7 +26,7 @@ export default async function NewsPage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="border-b border-border/60 bg-gradient-to-b from-primary/5 to-transparent py-12">
+        <section className="border-b border-border/60 bg-muted/20 py-12">
           <div className="container mx-auto px-4 max-w-5xl">
             <div className="flex items-center gap-2 mb-3">
               <Newspaper className="h-5 w-5 text-primary" />
